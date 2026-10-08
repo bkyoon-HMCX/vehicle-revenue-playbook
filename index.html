@@ -1,0 +1,1503 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>투루카 차량 매출 의사결정 플레이북</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+/* Layout: 세로로 읽는 5장 의사결정 흐름 + 접히는 상세 Playbook. 색은 부서(Growth 파랑 / Ops 주황 / Fleet 초록)에만 쓰고 나머지는 차분한 중성색. */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#F8F9FB; --fg:#12171F; --muted:#586172; --line:#D9DEE6; --ink:#1B2230; --ink-soft:#3A4455;
+  --growth:#2F5FD0; --growth-tint:#E7EDFB; --growth-text:#2350B8;
+  --ops:#C75F0A; --ops-tint:#FCEBDC; --ops-text:#9E4703;
+  --fleet:#1F8A4C; --fleet-tint:#DCF1E5; --fleet-text:#16703C;
+  --on-team:#FFFFFF; --warn-bg:#FFF6DB; --warn-line:#E8D28A; --warn-text:#6B5410;
+  --shadow:0 1px 2px rgba(18,23,31,.05),0 6px 20px rgba(18,23,31,.05);
+  --font:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1218; --surface:#161B23; --surface-2:#1B212B; --fg:#E9EDF3; --muted:#9AA4B4; --line:#2B3340; --ink:#E9EDF3; --ink-soft:#C3CBD8;
+    --growth:#7DA0FF; --growth-tint:#1B2947; --growth-text:#A9C0FF;
+    --ops:#FF9F5A; --ops-tint:#38240F; --ops-text:#FFB784;
+    --fleet:#4FCB8A; --fleet-tint:#11301F; --fleet-text:#7DE0AB;
+    --on-team:#0E141B; --warn-bg:#2C2511; --warn-line:#5A4A1B; --warn-text:#E8D28A;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1218; --surface:#161B23; --surface-2:#1B212B; --fg:#E9EDF3; --muted:#9AA4B4; --line:#2B3340; --ink:#E9EDF3; --ink-soft:#C3CBD8;
+  --growth:#7DA0FF; --growth-tint:#1B2947; --growth-text:#A9C0FF;
+  --ops:#FF9F5A; --ops-tint:#38240F; --ops-text:#FFB784;
+  --fleet:#4FCB8A; --fleet-tint:#11301F; --fleet-text:#7DE0AB;
+  --on-team:#0E141B; --warn-bg:#2C2511; --warn-line:#5A4A1B; --warn-text:#E8D28A;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.65;word-break:keep-all;overflow-wrap:break-word;padding-inline:16px;padding-block:0 72px}
+h1,h2,h3,h4{margin:0;line-height:1.3;text-wrap:balance;letter-spacing:-.01em}
+p{margin:0}
+ul,ol{margin:0;padding:0;list-style:none}
+a{color:inherit}
+small.en{font-size:.78em;color:var(--muted);font-weight:400;margin-left:.25em;word-break:normal}
+:focus-visible{outline:3px solid var(--growth);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1000px;margin-inline:auto}
+
+/* top nav */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;margin-inline:-16px;padding-inline:16px;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1000px;margin-inline:auto;display:flex;align-items:center;gap:20px;min-height:48px}
+.brand{font-weight:800;font-size:14px;white-space:nowrap;letter-spacing:-.01em}
+.navlinks{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;min-width:0}
+.navlinks::-webkit-scrollbar{display:none}
+.navlinks a{white-space:nowrap;text-decoration:none;font-size:13px;color:var(--muted);padding:6px 10px;border-radius:8px;font-weight:500}
+.navlinks a:hover{color:var(--fg);background:var(--surface-2)}
+.navlinks a.on{color:var(--fg);background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+@media (max-width:640px){.brand{display:none}}
+
+/* page frame */
+.part-label{display:flex;align-items:center;gap:12px;margin-block:44px 18px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.part-label::after{content:"";flex:1;height:1px;background:var(--line)}
+.page{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:clamp(20px,4vw,40px);margin-bottom:28px;scroll-margin-top:64px}
+.page-eyebrow{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--muted);margin-bottom:12px}
+.page-eyebrow b{color:var(--fg);font-weight:600}
+.page h2{font-size:clamp(24px,4.2vw,34px);font-weight:800}
+.ph{display:inline-block;max-width:100%}
+p,li,td,dd{text-wrap:pretty}
+.page-lead{margin-top:14px;font-size:16px;line-height:1.7;color:var(--ink-soft);max-width:44em;text-wrap:pretty}
+.page-action{margin-top:28px;display:flex;gap:12px;align-items:flex-start;background:var(--surface-2);border:1px dashed var(--line);border-radius:12px;padding:14px 16px;font-size:14px}
+.page-action .k{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--muted);padding-top:3px;white-space:nowrap}
+.page-action b{font-weight:700}
+
+/* team tags */
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:3px 10px 3px 8px;border-radius:999px;white-space:nowrap}
+.tag::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.tag.growth{background:var(--growth-tint);color:var(--growth-text)}
+.tag.ops{background:var(--ops-tint);color:var(--ops-text)}
+.tag.fleet{background:var(--fleet-tint);color:var(--fleet-text)}
+.tag.plain{background:var(--surface-2);color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
+.tag.plain::before{display:none}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-top:18px;font-size:13px;color:var(--muted)}
+
+/* page 1 */
+.thesis{margin-top:22px;padding:18px 20px;border-radius:12px;background:var(--fg);color:var(--bg);font-size:17px;font-weight:700;line-height:1.55;max-width:none;text-wrap:balance}
+.thesis em{font-style:normal;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.chain{margin-top:30px;display:flex;flex-wrap:wrap;gap:10px 0;counter-reset:c}
+.chain li{position:relative;flex:1 1 130px;min-width:130px;padding:12px 12px 12px 14px;background:var(--surface-2);border:1px solid var(--line);border-left-width:0;font-size:13.5px;font-weight:700;line-height:1.4}
+.chain li:first-child{border-left-width:1px;border-radius:10px 0 0 10px}
+.chain li:last-child{border-radius:0 10px 10px 0}
+.chain li small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:2px}
+.chain li:not(:last-child)::after{content:"";position:absolute;right:-9px;top:50%;margin-top:-9px;width:18px;height:18px;background:var(--surface-2);border-top:1px solid var(--line);border-right:1px solid var(--line);transform:rotate(45deg);z-index:1}
+.chain li.end{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.axis{margin-top:8px;display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.axis span:last-child::after{content:" →"}
+.axis span:first-child::before{content:"← "}
+.principles{margin-top:30px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.principle{border:1px solid var(--line);border-radius:14px;padding:18px;background:var(--surface)}
+.principle .n{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--muted)}
+.principle h3{font-size:17px;font-weight:800;margin-top:6px}
+.principle p{margin-top:8px;font-size:13.5px;color:var(--muted)}
+.principle .where{margin-top:12px;font-size:12.5px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:10px}
+@media (max-width:760px){.principles{grid-template-columns:1fr}.chain li{flex-basis:100%;border-left-width:1px;border-top-width:0;border-radius:0!important}.chain li:first-child{border-top-width:1px;border-radius:10px 10px 0 0!important}.chain li:last-child{border-radius:0 0 10px 10px!important}.chain li:not(:last-child)::after{right:auto;left:24px;top:auto;bottom:-9px;margin-top:0;transform:rotate(135deg)}}
+
+/* page 2: decision flow */
+.flow{margin-top:26px}
+.start{display:flex;align-items:center;gap:14px;background:var(--fg);color:var(--bg);border-radius:14px;padding:16px 20px;max-width:520px}
+.start .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.1em;opacity:.7}
+.start strong{font-size:18px;display:block}
+.start p{font-size:13px;opacity:.85;margin-top:2px}
+.step{position:relative}
+.row{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:0 56px;align-items:center}
+.qcard{background:var(--surface);border:1.5px solid var(--ink);border-radius:14px;padding:16px 18px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;box-shadow:var(--shadow)}
+.qb{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:var(--mono);font-weight:600;font-size:15px;color:var(--on-team);grid-row:span 2}
+.qb.growth{background:var(--growth)}.qb.ops{background:var(--ops)}.qb.fleet{background:var(--fleet)}
+.qb.gf{background:linear-gradient(90deg,var(--growth) 50%,var(--fleet) 50%)}
+.qcard h3{font-size:17px;font-weight:800;align-self:center}
+.qcard .owners{grid-column:2;display:flex;flex-wrap:wrap;gap:6px}
+.chk{grid-column:1/-1;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.chk .k{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12.5px;padding:3px 10px;border-radius:8px;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line);color:var(--ink-soft)}
+.chip.unmet{background:var(--warn-bg);box-shadow:inset 0 0 0 1px var(--warn-line);color:var(--warn-text)}
+.qnote{grid-column:1/-1;margin-top:10px;font-size:12.5px;color:var(--muted)}
+.side{position:relative}
+.side::before{content:"";position:absolute;left:-56px;top:50%;width:50px;border-top:2px solid var(--ink)}
+.side::after{content:"";position:absolute;left:-12px;top:50%;margin-top:-6px;border:6px solid transparent;border-left:8px solid var(--ink);border-right:0}
+.lab-side{position:absolute;left:-54px;top:calc(50% - 30px);font-family:var(--mono);font-size:12px;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--surface);border:1.5px solid var(--ink);z-index:2}
+.lab-side.yes{background:var(--ink);color:var(--surface)}
+.branch{border-radius:14px;padding:14px 16px;border:1px solid var(--line);background:var(--surface-2)}
+.branch.growth{background:var(--growth-tint);border-color:color-mix(in srgb,var(--growth) 45%,transparent)}
+.branch.ops{background:var(--ops-tint);border-color:color-mix(in srgb,var(--ops) 45%,transparent)}
+.branch.fleet{background:var(--fleet-tint);border-color:color-mix(in srgb,var(--fleet) 45%,transparent)}
+.branch .tags{margin-bottom:8px}
+.acts{display:flex;flex-direction:column;gap:0}
+.acts li{position:relative;padding:3px 0 3px 22px;font-weight:700;font-size:14.5px}
+.acts li::before{content:"";position:absolute;left:5px;top:13px;width:6px;height:6px;border-radius:50%;background:var(--ink)}
+.acts li:not(:last-child)::after{content:"";position:absolute;left:7.5px;top:21px;bottom:-6px;width:1px;background:var(--ink)}
+.acts li small{display:block;font-weight:400;font-size:12.5px;color:var(--muted)}
+.goto{display:inline-block;margin-top:8px;font-size:12.5px;font-weight:700;text-decoration:none;padding:2px 10px;border-radius:999px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+.goto:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.cond{margin-top:10px;font-size:12.5px;color:var(--ink-soft);border-top:1px dashed color-mix(in srgb,var(--ink) 25%,transparent);padding-top:8px}
+.cond ol{margin-top:4px;counter-reset:k}
+.cond ol li{counter-increment:k;position:relative;padding-left:18px}
+.cond ol li::before{content:counter(k);position:absolute;left:0;font-family:var(--mono);font-size:11px;top:2px;color:var(--muted)}
+.down{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:56px}
+.dv{display:flex;flex-direction:column;align-items:center;min-height:62px;position:relative}
+.dv::before,.dv::after{content:"";width:2px;flex:1;background:var(--ink)}
+.dv span{font-family:var(--mono);font-size:12px;font-weight:600;padding:2px 8px;border-radius:6px;border:1.5px solid var(--ink);background:var(--surface);margin-block:2px}
+.dv.yes span{background:var(--ink);color:var(--surface)}
+.dv i{position:absolute;bottom:-1px;left:50%;margin-left:-6px;border:6px solid transparent;border-top:8px solid var(--ink);border-bottom:0}
+.end-card{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;background:var(--surface);border:1.5px dashed var(--ink);border-radius:14px;padding:14px 18px}
+.end-card strong{font-size:16px}
+.end-card .opts{display:flex;flex-wrap:wrap;gap:6px}
+@media (max-width:760px){
+  .row,.down{grid-template-columns:minmax(0,1fr);gap:0}
+  .row{align-items:stretch}
+  .side{margin:34px 0 0 22px;padding-left:18px;border-left:2px solid var(--ink)}
+  .side::before,.side::after{display:none}
+  .lab-side{left:-14px;top:-30px}
+  .down .dv:last-child{display:none}
+  .dv{min-height:56px}
+}
+
+/* page 3 */
+.rr{margin-top:26px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr);gap:16px;align-items:stretch}
+.role{border-radius:16px;padding:20px;border:1px solid var(--line);display:flex;flex-direction:column;gap:12px;background:var(--surface)}
+.role.growth{background:var(--growth-tint);border:2px solid var(--growth)}
+.role.ops{background:var(--ops-tint);border-color:color-mix(in srgb,var(--ops) 50%,transparent)}
+.role.fleet{background:var(--fleet-tint);border-color:color-mix(in srgb,var(--fleet) 50%,transparent)}
+.role h3{font-size:19px;font-weight:800}
+.role .sub{font-size:12.5px;font-weight:700;color:var(--muted)}
+.role .badge-owner{align-self:flex-start;font-family:var(--mono);font-size:11px;letter-spacing:.08em;background:var(--growth);color:var(--on-team);padding:3px 10px;border-radius:6px;font-weight:600}
+.role .q{font-size:15px;font-weight:700;line-height:1.5;padding:10px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--line)}
+.role ul{display:flex;flex-direction:column;gap:5px;font-size:14px}
+.role ul li{position:relative;padding-left:14px}
+.role ul li::before{content:"";position:absolute;left:0;top:.7em;width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.5}
+.role.growth ul li.core{font-weight:700}
+.relay{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.relay>div{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:var(--surface)}
+.relay h4{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--muted)}
+.relay ol{display:flex;flex-direction:column;gap:8px;font-size:13.5px}
+.relay ol li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start}
+.relay ol li .tag{margin-top:1px}
+.relay.single{grid-template-columns:1fr}
+@media (max-width:860px){.rr{grid-template-columns:1fr}.role.growth{order:-1}.relay{grid-template-columns:1fr}}
+
+/* page 4 */
+.gates{margin-top:26px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;position:relative}
+.gate{border:1px solid var(--line);background:var(--surface);padding:18px;display:flex;flex-direction:column;gap:10px;position:relative}
+.gate:first-child{border-radius:16px 0 0 16px}
+.gate:last-child{border-radius:0 16px 16px 0}
+.gate:not(:first-child){border-left-width:0}
+.gate:not(:last-child)::after{content:"";position:absolute;right:-10px;top:56px;width:20px;height:20px;background:var(--surface);border-top:1px solid var(--line);border-right:1px solid var(--line);transform:rotate(45deg);z-index:2}
+.gate .g{font-family:var(--mono);font-size:12px;letter-spacing:.1em;font-weight:600;color:var(--muted)}
+.gate h3{font-size:19px;font-weight:800}
+.gate .en{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.06em}
+.gate .desc{font-size:13.5px;color:var(--ink-soft)}
+.gate ul{display:flex;flex-direction:column;gap:4px;font-size:13.5px}
+.gate ul li{position:relative;padding-left:16px}
+.gate ul li::before{content:"";position:absolute;left:1px;top:.62em;width:8px;height:2px;background:var(--ink)}
+.gate .chips{margin-top:2px}
+.verdict{margin-top:auto;display:grid;gap:6px;padding-top:12px;border-top:1px dashed var(--line);font-size:13px}
+.verdict div{display:flex;gap:8px;align-items:baseline}
+.verdict .yn{font-family:var(--mono);font-size:11px;font-weight:600;padding:1px 7px;border-radius:5px;flex:none}
+.verdict .no{border:1.5px solid var(--ink)}
+.verdict .yes{background:var(--ink);color:var(--surface)}
+.sum{margin-top:6px;display:grid;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:13.5px}
+.sum div{display:flex;justify-content:space-between;gap:10px;padding:7px 12px;background:var(--surface)}
+.sum div+div{border-top:1px solid var(--line)}
+.sum .neg b{color:var(--ops-text)}
+.sum .tot{background:var(--surface-2);font-weight:800}
+.sum b{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+.decide{margin-top:12px;font-size:13px;background:var(--surface-2);border-radius:10px;padding:10px 12px}
+.decide b{font-weight:800}
+.eq3{margin-top:22px;display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:10px;align-items:stretch}
+.eq3 .cell{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:var(--surface)}
+.eq3 .cell h4{font-size:17px;font-weight:800}
+.eq3 .cell .qq{font-size:13px;color:var(--muted);margin-top:2px}
+.eq3 .cell.last{border:2px solid var(--ink)}
+.eq3 .ne{align-self:center;font-size:26px;font-weight:800;color:var(--muted)}
+.final-q{margin-top:22px;padding:22px 24px;border-radius:16px;background:var(--fg);color:var(--bg)}
+.final-q .not{font-size:14px;opacity:.75;text-decoration:line-through;text-decoration-thickness:1px}
+.final-q .yes{margin-top:6px;font-size:clamp(19px,3.2vw,25px);font-weight:800;line-height:1.4}
+@media (max-width:860px){
+  .gates{grid-template-columns:1fr}
+  .gate,.gate:first-child,.gate:last-child{border-radius:0;border-left-width:1px}
+  .gate:first-child{border-radius:16px 16px 0 0}.gate:last-child{border-radius:0 0 16px 16px}
+  .gate:not(:first-child){border-top-width:0}
+  .gate:not(:last-child)::after{right:auto;left:40px;top:auto;bottom:-10px;transform:rotate(135deg)}
+  .eq3{grid-template-columns:1fr}.eq3 .ne{display:none}
+}
+
+/* page 5 */
+.ill{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.06em;padding:3px 10px;border-radius:6px;background:var(--warn-bg);color:var(--warn-text);box-shadow:inset 0 0 0 1px var(--warn-line)}
+.vehicle{margin-top:22px;display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center;padding:16px 20px;border:1.5px solid var(--ink);border-radius:14px}
+.vehicle h3{font-size:22px;font-weight:800}
+.vehicle .loc{font-size:13.5px;color:var(--muted)}
+.bepnow{margin-left:auto;display:flex;align-items:center;gap:12px}
+.bepnow .num{font-size:34px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.crit{font-family:var(--mono);font-size:12px;font-weight:600;padding:3px 10px;border-radius:6px;background:var(--ops-tint);color:var(--ops-text)}
+.case{margin-top:18px;display:grid;gap:12px}
+.cs{display:grid;grid-template-columns:48px minmax(0,1fr) minmax(0,1.1fr);gap:6px 16px;border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:var(--surface);align-items:start}
+.cs .no{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--muted);grid-row:span 2}
+.cs h4{font-size:16px;font-weight:800;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.cs .facts{font-size:13.5px;color:var(--ink-soft)}
+.cs .facts li{padding-left:14px;position:relative}
+.cs .facts li::before{content:"";position:absolute;left:1px;top:.7em;width:6px;height:2px;background:var(--muted)}
+.res{align-self:stretch;border-radius:10px;padding:10px 14px;background:var(--surface-2);font-size:14px;font-weight:700;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.res .pass{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--fleet-text)}
+.res.go{background:var(--growth-tint)}
+.res.act{background:var(--fleet-tint)}
+.res.done{background:var(--fg);color:var(--bg)}
+.res small{font-weight:400;font-size:12.5px;color:inherit;opacity:.8}
+.ledger{grid-column:1/-1;margin-top:6px}
+.cand{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bepbar{grid-column:1/-1;margin-top:10px}
+.bar-track{position:relative;height:18px;border-radius:9px;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line);margin-top:26px}
+.bar-fill{position:absolute;inset:0 auto 0 0;border-radius:9px}
+.bar-68{width:68%;background:var(--ops);opacity:.55}
+.bar-96{width:96%;background:var(--growth)}
+.bar-mark{position:absolute;top:-22px;transform:translateX(-50%);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bar-100{position:absolute;left:100%;top:-6px;bottom:-6px;border-left:2px dashed var(--ink)}
+.bar-100::after{content:"BEP 100%";position:absolute;bottom:100%;right:-2px;margin-bottom:3px;font-size:11px;color:var(--muted);white-space:nowrap}
+.bar-wrap{padding-right:0;margin-bottom:22px}
+@media (max-width:760px){.bar-100::after{bottom:auto;top:100%;margin:3px 0 0}.bar-mark.m96{top:52px!important}.bar-wrap{margin-bottom:48px}.cs{grid-template-columns:minmax(0,1fr)}.cs>*{min-width:0}.cs .no{grid-row:auto}.cand{grid-template-columns:minmax(0,1fr)}.bepnow{margin-left:0}}
+
+/* 12 questions */
+.qa{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:28px}
+.qa summary{cursor:pointer;padding:14px 18px;font-weight:800;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary::after{content:"+";font-family:var(--mono);font-size:18px;color:var(--muted)}
+.qa[open] summary::after{content:"−"}
+.qa ol{counter-reset:q;padding:4px 18px 16px;display:grid;grid-template-columns:1fr 1fr;gap:6px 28px}
+.qa li{counter-increment:q;display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:6px;align-items:baseline;font-size:13.5px;padding:6px 0;border-bottom:1px solid var(--line)}
+.qa li::before{content:counter(q);font-family:var(--mono);color:var(--muted);font-size:12px}
+.qa li a{font-size:12px;font-weight:700;text-decoration:none;color:var(--growth-text);white-space:nowrap}
+@media (max-width:760px){.qa ol{grid-template-columns:1fr}}
+
+/* part 2 */
+.p2-intro{background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-text);border-radius:14px;padding:16px 18px;font-size:14px;margin-bottom:18px}
+.p2-intro b{font-weight:800}
+.p2-head{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end;margin-bottom:14px}
+.p2-head h2{font-size:clamp(22px,3.6vw,30px);font-weight:800}
+.p2-head p{font-size:14px;color:var(--muted);margin-top:4px;max-width:44em;text-wrap:pretty}
+.btn{font:inherit;font-size:13px;font-weight:700;padding:7px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--ink)}
+.pb{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;scroll-margin-top:64px}
+.pb summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 16px;align-items:center;padding:14px 18px}
+.pb summary::-webkit-details-marker{display:none}
+.pbno{grid-row:span 2;font-family:var(--mono);font-size:22px;font-weight:600;color:var(--muted);min-width:34px}
+.pbt{font-size:17px;font-weight:800}
+.pbq{grid-column:2;font-size:13px;color:var(--muted)}
+.pb summary .tags{grid-column:3;grid-row:1/span 2;justify-content:flex-end}
+.pb summary::after{content:"+";grid-column:4;grid-row:1/span 2;font-family:var(--mono);font-size:18px;color:var(--muted);margin-left:4px}
+.pb[open] summary::after{content:"−"}
+.pb[open] summary{border-bottom:1px solid var(--line)}
+.pbbody{padding:18px;display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+.pbbody>*{min-width:0}
+.sdda{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0}
+.sdda>div{padding:12px 14px;border:1px solid var(--line);border-left-width:0;background:var(--surface-2);font-size:13.5px;position:relative}
+.sdda>div:first-child{border-left-width:1px;border-radius:10px 0 0 10px}
+.sdda>div:last-child{border-radius:0 10px 10px 0;background:var(--surface);border-color:var(--ink);border-width:1.5px}
+.sdda h5{margin:0 0 6px;font-size:11.5px;font-family:var(--mono);letter-spacing:.08em;font-weight:600;color:var(--muted)}
+.sdda ul{display:grid;gap:4px}
+.sdda li{position:relative;padding-left:12px}
+.sdda li::before{content:"";position:absolute;left:0;top:.7em;width:5px;height:1.5px;background:var(--ink)}
+@media (max-width:860px){.sdda{grid-template-columns:1fr}.sdda>div,.sdda>div:first-child,.sdda>div:last-child{border-left-width:1px;border-radius:0}.sdda>div+div{border-top-width:0}.sdda>div:first-child{border-radius:10px 10px 0 0}.sdda>div:last-child{border-radius:0 0 10px 10px}}
+.pbbody h4{font-size:14px;font-weight:800;margin-bottom:6px}
+.pbbody p.t{font-size:14px;color:var(--ink-soft)}
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:13px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--surface-2);font-size:12px;color:var(--muted);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.formula{font-family:var(--mono);font-size:13px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 14px;line-height:1.8;overflow-x:auto;white-space:pre-wrap;word-break:keep-all}
+.formula b{font-weight:600;color:var(--growth-text)}
+.note{font-size:12.5px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+.prop{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.06em;padding:2px 7px;border-radius:5px;background:var(--warn-bg);color:var(--warn-text);box-shadow:inset 0 0 0 1px var(--warn-line);white-space:nowrap}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card-s{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface)}
+.funnel{display:flex;flex-wrap:wrap;gap:0}
+.funnel li{flex:1 1 90px;position:relative;padding:8px 10px;background:var(--surface-2);border:1px solid var(--line);border-left-width:0;font-size:12.5px;font-weight:700;text-align:center}
+.funnel li:first-child{border-left-width:1px;border-radius:8px 0 0 8px}
+.funnel li:last-child{border-radius:0 8px 8px 0}
+@media (max-width:760px){.twocol{grid-template-columns:1fr}}
+.glossary{margin-top:22px}
+.dept{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:clamp(18px,3.5vw,32px);margin-bottom:28px;scroll-margin-top:64px}
+.dept h2{font-size:clamp(22px,3.6vw,30px);font-weight:800}
+.dept .lead{margin-top:6px;font-size:14px;line-height:1.7;color:var(--muted);max-width:44em;text-wrap:pretty}
+.tabs{margin-top:18px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.tab{font:inherit;font-size:14px;font-weight:700;padding:9px 16px;border:1px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0;background:var(--surface-2);color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:8px;margin-bottom:-1px}
+.tab::before{content:"";width:9px;height:9px;border-radius:50%;background:currentColor}
+.tab[aria-selected="true"]{background:var(--surface);color:var(--fg);border-bottom:1px solid var(--surface)}
+.tab.t-growth[aria-selected="true"]{color:var(--growth-text)}.tab.t-ops[aria-selected="true"]{color:var(--ops-text)}.tab.t-fleet[aria-selected="true"]{color:var(--fleet-text)}
+.panel{padding-top:20px;display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+.panel>*{min-width:0}
+.panel[hidden]{display:none}
+.panel-head{border-radius:14px;padding:14px 18px;display:grid;gap:4px}
+.panel-head.growth{background:var(--growth-tint)}.panel-head.ops{background:var(--ops-tint)}.panel-head.fleet{background:var(--fleet-tint)}
+.panel-head .q{font-size:16px;font-weight:800}
+.panel-head .r{font-size:13px;color:var(--ink-soft)}
+.panel h3{font-size:16px;font-weight:800;margin-bottom:8px}
+.panel table{min-width:640px}
+.panel td:first-child{font-weight:700}
+.st{white-space:nowrap;font-size:12.5px;font-weight:700}
+.st.part{color:var(--ink-soft)}
+.st.no{color:var(--warn-text)}
+.handoff{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:6px}
+.handoff>div{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface-2);font-size:13px}
+.handoff .hd{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-weight:800;margin-bottom:6px}
+.handoff .hd .arr{font-family:var(--mono);color:var(--muted)}
+.handoff ul{display:grid;gap:3px}
+.handoff li{position:relative;padding-left:12px}
+.handoff li::before{content:"";position:absolute;left:0;top:.7em;width:5px;height:1.5px;background:var(--ink)}
+@media (max-width:760px){.handoff{grid-template-columns:1fr}}
+.grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
+.grp:first-of-type{margin-top:0}
+.gl{font-size:11.5px;color:var(--muted);font-weight:700;min-width:50px}
+.stack{display:flex;flex-direction:column;gap:10px}
+.when{font-size:12px;font-weight:700;color:var(--ink-soft);margin-bottom:6px}
+.pat{display:grid;gap:8px}
+footer{margin-top:30px;font-size:12.5px;color:var(--muted);text-align:center}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* ---- wide screen (PC): left TOC + wide canvas ---- */
+.toc{display:none}
+.lane-link{display:none}
+.only2{display:none}
+@media (min-width:1100px){
+  body{padding-inline:0}
+  .topbar{display:none}
+  .toc{display:block;position:fixed;left:0;top:0;bottom:0;width:256px;overflow-y:auto;padding:22px 14px 40px;background:var(--surface);border-right:1px solid var(--line);z-index:20;scrollbar-width:thin}
+  .toc-brand{font-weight:800;font-size:15px;line-height:1.35;padding:0 10px 14px;border-bottom:1px solid var(--line);margin-bottom:6px}
+  .toc-g{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:16px 10px 6px}
+  .toc nav a{display:block;text-decoration:none;font-size:13px;line-height:1.4;color:var(--ink-soft);padding:6px 10px;border-radius:8px;border-left:3px solid transparent}
+  .toc nav a.sub{font-size:12.5px;color:var(--muted);padding:4px 10px 4px 22px}
+  .toc nav a.sub b{font-family:var(--mono);font-weight:600;font-size:11px;margin-right:4px}
+  .toc nav a:hover{background:var(--surface-2);color:var(--fg)}
+  .toc nav a.on{background:var(--surface-2);color:var(--fg);font-weight:700;border-left-color:var(--fg)}
+  .wrap{max-width:1560px;margin-left:calc(256px + max(0px,(100vw - 256px - 1560px)/2));padding-inline:clamp(28px,3vw,56px)}
+  .page{scroll-margin-top:24px}
+  .page-lead{max-width:56em}
+  .part-label{margin-top:36px}
+}
+@media (min-width:1500px){
+  .flow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:72px;align-items:start}
+  .lane{min-width:0}
+  .flow .row,.flow .down{gap:0 40px}
+  .flow .side::before{left:-40px;width:34px}
+  .flow .lab-side{left:-38px}
+  .flow .start{max-width:none}
+  .lane-hide{display:none}
+  .only2{display:inline}
+  .lane-link{display:block;font-size:12.5px;font-weight:700;padding:8px 14px;border-radius:10px;border:1.5px dashed var(--ink);background:var(--surface-2);color:var(--ink-soft)}
+  .lane-link.out{margin-top:6px;text-align:right}
+  .lane-link.in{margin-bottom:6px}
+  .laneB .step:first-of-type{margin-top:0}
+}
+
+.lkh{font-weight:500;font-size:11.5px;color:var(--muted)}
+.lkbar{margin-top:14px;display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:12px;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line);font-size:13px}
+.lkbar-sub{font-size:12.5px;color:var(--muted)}
+.lkbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.lkmsg{font-size:12.5px;color:var(--fleet-text);font-weight:700}
+td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
+.lk .lkt0{color:var(--muted);margin-right:6px}
+.lk .lkb{text-decoration:none;display:inline-block}
+.lkmsg{color:var(--muted)}
+.lk .lka{font-weight:700;text-decoration:none;border-radius:999px;padding:2px 10px;background:var(--growth-tint);color:var(--growth-text);white-space:nowrap}
+.lk .lka:hover{box-shadow:inset 0 0 0 1.5px var(--growth)}
+.lk .lkb{font:inherit;font-size:12px;border:1px dashed var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:2px 10px;cursor:pointer}
+.lk .lkb:hover{color:var(--fg);border-color:var(--ink)}
+.lk .lkb.ed{border-style:solid;margin-left:4px}
+.lk .lkt{font-size:11px;color:var(--muted);margin-left:4px}
+.lk form{display:flex;flex-direction:column;gap:6px}
+.lk input{font:inherit;font-size:12.5px;padding:5px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);width:100%;min-width:0}
+.lk input:focus{outline:2px solid var(--growth);outline-offset:1px}
+.lk .lkrow{display:flex;gap:6px;flex-wrap:wrap}
+.lk .err{color:var(--warn-text);font-size:11.5px}
+
+/* 부서별 해야 할 일 강조 */
+.panel.growth{--tc:var(--growth);--tc-tint:var(--growth-tint);--tc-text:var(--growth-text)}
+.panel.ops{--tc:var(--ops);--tc-tint:var(--ops-tint);--tc-text:var(--ops-text)}
+.panel.fleet{--tc:var(--fleet);--tc-tint:var(--fleet-tint);--tc-text:var(--fleet-text)}
+.todo{border:2px solid var(--tc);border-radius:14px;overflow:hidden;background:var(--surface);box-shadow:var(--shadow)}
+.panel .todo>h3{margin:0;padding:12px 18px;background:var(--tc);color:var(--on-team);font-size:17px;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.panel .todo>h3::before{content:"";width:18px;height:18px;border-radius:5px;background:var(--on-team);opacity:.9;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z'/%3E%3C/svg%3E") center/contain no-repeat}
+.todo .tscroll{border:0;border-radius:0}
+.todo th{background:var(--tc-tint);color:var(--tc-text);font-size:12.5px}
+.todo tbody{counter-reset:r}
+.todo tbody tr{counter-increment:r}
+.todo td{padding:12px 14px}
+.todo td:first-child{color:var(--tc-text);font-weight:800;font-size:13.5px;white-space:nowrap}
+.todo td:first-child::before{content:counter(r);display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--tc);color:var(--on-team);font-size:12px;font-weight:800;margin-right:8px;font-variant-numeric:tabular-nums}
+.todo td:nth-child(2){font-size:14.5px;font-weight:700;color:var(--fg)}
+.todo tbody tr:nth-child(even){background:color-mix(in srgb,var(--tc-tint) 35%,transparent)}
+.handoff-h{margin-top:30px!important;font-size:18px!important;display:flex;align-items:center;gap:10px}
+.handoff>div{background:var(--surface);border-width:1.5px;border-color:var(--ink);box-shadow:var(--shadow);font-size:13.5px}
+.handoff .hd{font-size:14.5px;padding-bottom:8px;margin-bottom:8px;border-bottom:1px dashed var(--line)}
+.handoff li{padding-left:14px}
+</style>
+</head>
+<body>
+
+
+<header class="topbar">
+  <div class="topbar-in">
+    <span class="brand">차량 매출 의사결정 플레이북</span>
+    <nav class="navlinks" aria-label="페이지 이동">
+      <a href="#p1" data-s="p1">1 목적</a>
+      <a href="#p2" data-s="p2">2 판단 순서</a>
+      <a href="#p3" data-s="p3">3 역할</a>
+      <a href="#p4" data-s="p4">4 재배치</a>
+      <a href="#p5" data-s="p5">5 사례</a>
+      <a href="#dept" data-s="dept">부서별 기준</a>
+      <a href="#details" data-s="details">상세 Playbook</a>
+    </nav>
+  </div>
+</header>
+
+<aside class="toc" aria-label="목차">
+<div class="toc-brand">차량 매출<br>의사결정 플레이북</div>
+<nav>
+<div class="toc-g">PART 1 · Executive Flow</div>
+<a href="#p1" data-s="p1">1 목적</a>
+<a href="#p2" data-s="p2">2 판단 순서</a>
+<a class="sub" href="#q1" data-s="q1"><b>Q1</b> 정상 판매 가능</a>
+<a class="sub" href="#q2" data-s="q2"><b>Q2</b> 차고지 수요</a>
+<a class="sub" href="#q3" data-s="q3"><b>Q3</b> 노출·선택</a>
+<a class="sub" href="#q4" data-s="q4"><b>Q4</b> 전환</a>
+<a class="sub" href="#q5" data-s="q5"><b>Q5</b> 가격 조건</a>
+<a class="sub" href="#q6" data-s="q6"><b>Q6</b> 재배치</a>
+<a href="#p3" data-s="p3">3 누가 무엇을 판단하는가</a>
+<a href="#p4" data-s="p4">4 재배치 3 Gates</a>
+<a href="#p5" data-s="p5">5 사례</a>
+<a href="#qa12" data-s="qa12">12가지 질문 찾아보기</a>
+<div class="toc-g">부서별 기준</div>
+<a href="#dept" data-s="dept">부서별 해야 할 일·데이터</a>
+<div class="toc-g">PART 2 · Detailed Playbook</div>
+<a href="#details" data-s="details">상세 기준 전체</a>
+<a class="sub" href="#pb-01" data-s="pb-01"><b>01</b> BEP 미달 차량 탐지</a>
+<a class="sub" href="#pb-02" data-s="pb-02"><b>02</b> 추가 매출 가능액 우선순위</a>
+<a class="sub" href="#pb-03" data-s="pb-03"><b>03</b> 차종·지역·차고지·차량 비교</a>
+<a class="sub" href="#pb-04" data-s="pb-04"><b>04</b> 차량 상태·비가동</a>
+<a class="sub" href="#pb-05" data-s="pb-05"><b>05</b> 수요·조회·노출·예약</a>
+<a class="sub" href="#pb-06" data-s="pb-06"><b>06</b> 이용자 구성 (헤비유저)</a>
+<a class="sub" href="#pb-07" data-s="pb-07"><b>07</b> 가격 Action</a>
+<a class="sub" href="#pb-08" data-s="pb-08"><b>08</b> 가격 효과·잠식 검증</a>
+<a class="sub" href="#pb-09" data-s="pb-09"><b>09</b> 차고지·재배치 상세</a>
+<a class="sub" href="#pb-10" data-s="pb-10"><b>10</b> Exit</a>
+<a class="sub" href="#pb-11" data-s="pb-11"><b>11</b> 운영 주기와 KPI</a>
+<a href="#gloss" data-s="gloss">용어 풀이</a>
+</nav>
+</aside>
+
+<main class="wrap">
+
+<div class="part-label">PART 1 · Executive Decision Flow</div>
+
+<!-- ============ PAGE 1 ============ -->
+<section class="page" id="p1">
+  <div class="page-eyebrow"><b>1 / 5</b><span>왜 하는가</span></div>
+  <h2>BEP 미달 차량을 어떻게 정상화할 것인가?</h2>
+  <p class="page-lead"><span class="ph">차량별 BEP 미달을 조기에 탐지하고,</span> <span class="ph">원인을 차량 상태·수요·노출/선택·전환·차고지 관점에서</span> <span class="ph">순차적으로 진단한 뒤,</span> <span class="ph">가장 낮은 비용의 개선 Action부터 실행하여</span> <span class="ph">차량 단위 수익성을 정상화한다.</span></p>
+  <p class="thesis">단, 개별 차량의 매출 증가가 아니라 <em>“회사 전체 차량의 순증 수익”</em>⁠을 최종 판단 기준으로 한다.</p>
+
+  <ol class="chain" aria-label="전체 흐름">
+    <li>BEP 미달 발견</li>
+    <li>원인 확인⁠<small>차량 · 수요 · 노출 · 전환</small></li>
+    <li>가장 낮은 비용의 개선</li>
+    <li>효과 검증⁠<small>BEP 회복 여부</small></li>
+    <li>실패 시 재배치</li>
+    <li class="end">그래도 안 되면 Exit</li>
+  </ol>
+  <div class="axis"><span>비용·부담 낮음</span><span>비용·부담 높음</span></div>
+
+  <div class="principles">
+    <article class="principle">
+      <div class="n">①</div>
+      <h3>원인을 먼저 찾는다</h3>
+      <p>매출이 <span class="pz"><span class="ph">낮다는 결과만 보고</span> <span class="ph">할인부터 하지 않는다.</span> <span class="ph">차량 상태, 차고지 수요,</span> <span class="ph">노출, 전환 순서로 확인한다.</span></span></p>
+      <p class="where">적용: 2장 Q1 ~ Q4</p>
+    </article>
+    <article class="principle">
+      <div class="n">②</div>
+      <h3>비용이 낮은 Action부터 실행한다</h3>
+      <p>차량 <span class="pz"><span class="ph">정상화, 노출·상품 개선,</span> <span class="ph">가격 테스트를 먼저 하고,</span> <span class="ph">재배치와 Exit는 그다음에 검토한다.</span></span></p>
+      <p class="where">적용: 2장 Q4 → Q5 → Q6 순서</p>
+    </article>
+    <article class="principle">
+      <div class="n">③</div>
+      <h3>차량 매출이 아니라 Fleet 전체 순증 수익으로 판단한다</h3>
+      <p>한 <span class="pz"><span class="ph">차량이 더 팔려도 주변 차량이 줄거나 비용이 늘면</span> <span class="ph">회사 이익은 늘지 않는다.</span></span></p>
+      <p class="where">적용: <span class="pz"><span class="ph">4장 Gate 3,</span> <span class="ph">상세 Playbook 08</span></span></p>
+    </article>
+  </div>
+
+  <div class="page-action"><span class="k">NEXT</span><span>다음 장에서 BEP 미달 차량이 생겼을 때 <b>무엇을 어떤 순서로 확인하는지(Q1 ~ Q6)</b>⁠를 한 장으로 봅니다.</span></div>
+</section>
+
+<!-- ============ PAGE 2 ============ -->
+<section class="page" id="p2">
+  <div class="page-eyebrow"><b>2 / 5</b><span>어떤 순서로 판단하는가</span></div>
+  <h2>BEP <span class="pz"><span class="ph">미달 차량이 생기면</span> <span class="ph">무엇부터 확인하는가?</span></span></h2>
+  <p class="page-lead"><span class="ph">위에서 아래로 질문에 답하며 내려갑니다.</span><br><span class="ph">NO가 나오면 오른쪽에 적힌 부서가</span> <span class="ph">해당 Action을 맡습니다.</span><span class="only2"><br><span class="ph">넓은 화면에서는 왼쪽 열(Q1 ~ Q3)에서 시작해</span> <span class="ph">오른쪽 열(Q4 ~ Q6)로 이어집니다.</span></span></p>
+  <div class="legend" aria-label="부서 색상 범례">
+    <span class="tag growth">Growth</span>
+    <span class="tag ops">Ops Optimization</span>
+    <span class="tag fleet">Fleet Performance</span>
+    <span>질문 번호의 색이 판단하는 부서입니다.</span>
+  </div>
+
+  <div class="flow">
+<div class="lane laneA">
+    <div class="start">
+      <div>
+        <span class="lbl">START</span>
+        <strong>BEP 미달 차량 발생</strong>
+        <p>관리 순서: BEP 달성률이 낮고 <b>추가 매출 가능액</b>⁠이 큰 차량부터. BEP를 달성한 차량도 헤비유저 의존이 높으면 <a href="#pb-06" style="font-weight:700">관찰 대상(상세 06)</a></p>
+      </div>
+    </div>
+    <div class="down" style="margin-top:0"><div class="dv"><i></i></div><div></div></div>
+
+    <!-- Q1 -->
+    <div class="step" id="q1">
+      <div class="row">
+        <div class="qcard">
+          <span class="qb ops">Q1</span>
+          <h3>정상적으로 판매 가능한 차량인가?</h3>
+          <div class="owners"><span class="tag ops">Ops Optimization</span></div>
+          <div class="chk"><div class="k">확인</div>
+            <div class="chips"><span class="chip">사고</span><span class="chip">정비</span><span class="chip">비가동</span><span class="chip">차량 상태</span><span class="chip">예약 충돌</span></div>
+          </div>
+        </div>
+        <div class="side">
+          <span class="lab-side">NO</span>
+          <div class="branch ops">
+            <div class="tags"><span class="tag ops">Ops Optimization</span></div>
+            <ol class="acts"><li>차량 정상화</li><li>정상화 후 재측정⁠<small>다시 START부터</small></li></ol>
+          </div>
+        </div>
+      </div>
+      <div class="down"><div class="dv yes"><span>YES</span><i></i></div><div></div></div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="step" id="q2">
+      <div class="row">
+        <div class="qcard">
+          <span class="qb gf">Q2</span>
+          <h3>현재 차고지에 충분한 수요가 있는가?</h3>
+          <div class="owners"><span class="tag growth">Growth</span><span class="tag fleet">Fleet Performance</span></div>
+          <div class="chk"><div class="k">확인</div>
+            <div class="grp"><span class="gl">수요</span><span class="chip">지역 유입</span><span class="chip">차고지 조회</span><span class="chip">유사차종 수요</span></div>
+            <div class="grp"><span class="gl">공급</span><span class="chip">차량 공급량</span><span class="chip unmet">예약 가능 차량 부족</span><span class="chip unmet">피크타임 공급 부족</span></div>
+            <div class="grp"><span class="gl">이용자</span><span class="chip">이용자 수</span><span class="chip">인당 이용빈도</span><span class="chip">헤비유저 이탈</span></div>
+            <div class="grp"><span class="gl">적합성</span><span class="chip">이 차고지의 선호 차종·유종과 일치</span></div>
+          </div>
+          <p class="qnote">노란 <span class="pz"><span class="ph">칸은 미충족 수요 신호입니다.</span> <span class="ph">선호 차종·유종은 지역×차고지마다 다르므로 같은 차고지 특성끼리 비교합니다.</span></span></p>
+        </div>
+        <div class="side">
+          <span class="lab-side">NO</span>
+          <div class="stack">
+            <div class="branch growth">
+              <div class="when">헤비유저 한 명이 줄어든 경우</div>
+              <div class="tags"><span class="tag growth">Growth</span></div>
+              <ol class="acts"><li>개인 단위 CRM⁠<small>이탈 원인 확인 후 재방문 유도</small></li></ol>
+              <a class="goto" href="#pb-06">이용자 진단 보기 →</a>
+            </div>
+            <div class="branch fleet">
+              <div class="when">이용자 <span class="pz"><span class="ph">수와 이용빈도가 모두 낮거나,</span> <span class="ph">선호 차종·유종과 안 맞는 경우</span></span></div>
+              <div class="tags"><span class="tag growth">Growth</span><span class="tag fleet">Fleet Performance</span></div>
+              <ol class="acts"><li>재배치 · 차종 교체 검토⁠<small>가격 할인보다 먼저 검토</small></li></ol>
+              <a class="goto" href="#q6">Q6으로 이동 →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="down"><div class="dv yes"><span>YES</span><i></i></div><div></div></div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="step" id="q3">
+      <div class="row">
+        <div class="qcard">
+          <span class="qb growth">Q3</span>
+          <h3>해당 차량이 정상적으로 노출·선택되고 있는가?</h3>
+          <div class="owners"><span class="tag growth">Growth</span></div>
+          <div class="chk"><div class="k">확인</div>
+            <div class="chips"><span class="chip">차량 노출</span><span class="chip">상세 진입</span><span class="chip">유사차종 대비 선택률 (같은 차고지 특성 기준)</span></div>
+          </div>
+        </div>
+        <div class="side">
+          <span class="lab-side">NO</span>
+          <div class="branch growth">
+            <div class="tags"><span class="tag growth">Growth</span></div>
+            <ol class="acts"><li>노출·상품 개선</li></ol>
+          </div>
+        </div>
+      </div>
+      <div class="down lane-hide"><div class="dv yes"><span>YES</span><i></i></div><div></div></div>
+    </div>
+
+    <div class="lane-link out">YES → 오른쪽 열 Q4로 이어집니다</div>
+</div>
+<div class="lane laneB">
+    <div class="lane-link in">Q3에서 이어짐 (YES)</div>
+    <!-- Q4 -->
+    <div class="step" id="q4">
+      <div class="row">
+        <div class="qcard">
+          <span class="qb growth">Q4</span>
+          <h3>예약으로 정상 전환되고 있는가?</h3>
+          <div class="owners"><span class="tag growth">Growth</span></div>
+          <div class="chk"><div class="k">확인</div>
+            <div class="chips"><span class="chip">상세</span><span class="chip">→ 예약 시작</span><span class="chip">→ 결제</span><span class="chip">→ 예약 완료</span></div>
+          </div>
+        </div>
+        <div class="side">
+          <span class="lab-side">NO</span>
+          <div class="branch growth">
+            <div class="tags"><span class="tag growth">Growth</span></div>
+            <ol class="acts"><li>비가격 원인 확인</li><li>필요 시 차량×시간대 가격 테스트⁠<small>아래 4가지가 모두 충족될 때만</small></li></ol>
+            <div class="cond"><b>가격 테스트 조건</b>
+              <ol><li>차량이 정상 판매 가능한 상태</li><li>차고지 자체 수요 부족이 아님</li><li>노출·상품 문제를 먼저 확인함</li><li>전환 단계에서 가격 저항 가능성이 확인됨</li></ol>
+              <p style="margin-top:6px">성과 = 대상 차량 매출 증가 − 주변 유사차량 매출 감소 − 할인 비용</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="down"><div class="dv yes"><span>YES · 또는 Action 후</span><i></i></div><div></div></div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="step" id="q5">
+      <div class="row">
+        <div class="qcard">
+          <span class="qb growth">Q5</span>
+          <h3>개선 후 BEP가 회복되었는가?</h3>
+          <div class="owners"><span class="tag growth">Growth</span></div>
+          <p class="qnote" style="margin-top:6px">정상화·노출 <span class="pz"><span class="ph">개선·가격 테스트를 실행하고</span> <span class="ph">일정 기간이 지난 뒤</span> <span class="ph">다시 측정한 결과로 판단합니다.</span></span></p>
+        </div>
+        <div class="side">
+          <span class="lab-side yes">YES</span>
+          <div class="branch">
+            <ol class="acts"><li>유지 · 할인 축소 · 정상 운영</li></ol>
+          </div>
+        </div>
+      </div>
+      <div class="down"><div class="dv"><span>NO · 재배치 검토</span><i></i></div><div></div></div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="step" id="q6">
+      <div class="row">
+        <div class="qcard">
+          <span class="qb fleet">Q6</span>
+          <h3>더 높은 순증 수익을 만들 수 있는 차고지가 있는가?</h3>
+          <div class="owners"><span class="tag fleet">Fleet Performance</span><span class="tag growth">추가 수요 확인: Growth</span></div>
+          <p class="qnote" style="margin-top:6px">판단 <span class="pz"><span class="ph">기준과 계산은 4장에서</span> <span class="ph">설명합니다.</span></span></p>
+        </div>
+        <div class="side">
+          <span class="lab-side yes">YES</span>
+          <div class="branch fleet">
+            <div class="tags"><span class="tag fleet">Fleet Performance</span></div>
+            <ol class="acts"><li>재배치 실행</li><li>4~8주 후 재측정⁠<small>결과는 Q5에서 다시 판단</small></li></ol>
+            <a class="goto" href="#q5">Q5로 돌아가기 ↑</a>
+          </div>
+        </div>
+      </div>
+      <div class="down"><div class="dv"><span>NO</span><i></i></div><div></div></div>
+    </div>
+
+    <div class="end-card">
+      <div>
+        <strong>차종 교체 · 반납 · 채널 전환 · Exit 검토</strong>
+        <div style="margin-top:6px" class="tags"><span class="tag growth">결정 관리: Growth</span><span class="tag fleet">실행: Fleet Performance</span></div>
+      </div>
+    </div>
+</div>
+  </div>
+
+  <div class="page-action"><span class="k">ACTION</span><span>어느 칸에서 멈추든 <b>요청 받는 부서와 다음 Action</b>⁠이 <span class="pz"><span class="ph">오른쪽 칸에 적혀 있습니다.</span> <span class="ph">재배치가 필요한 경우는 4장,</span> <span class="ph">담당 구분은 3장을</span></span> 봅니다.</span></div>
+</section>
+
+<!-- ============ PAGE 3 ============ -->
+<section class="page" id="p3">
+  <div class="page-eyebrow"><b>3 / 5</b><span>누가 판단하는가</span></div>
+  <h2>누가 무엇을 판단하는가?</h2>
+  <p class="page-lead"><span class="ph">차량별 매출 성과의 책임은</span> <span class="ph">Growth 한 곳에 있습니다.</span><br><span class="ph">Ops와 Fleet은 각자의 영역에서</span> <span class="ph">판단 근거를 만들고 실행합니다.</span></p>
+
+  <div class="rr">
+    <article class="role ops">
+      <span class="tag ops">Ops Optimization</span>
+      <h3>운영 정상화</h3>
+      <div class="q">“이 차량이 정상적으로 판매 가능한 상태였는가?”</div>
+      <ul>
+        <li>사고</li><li>정비</li><li>비가동</li><li>차량 품질</li><li>세차</li><li>예약 충돌</li><li>클레임</li>
+      </ul>
+    </article>
+
+    <article class="role growth">
+      <span class="badge-owner">SINGLE OWNER</span>
+      <h3>Growth Team</h3>
+      <div class="sub">Vehicle Revenue Performance Owner</div>
+      <div class="q">“왜 <span class="pz"><span class="ph">이 차량의 매출이 낮고,</span> <span class="ph">다음에 무엇을 해야 하는가?”</span></span></div>
+      <ul>
+        <li class="core">BEP 미달 차량 탐지 및 우선순위 선정</li>
+        <li>차종·지역·차고지·차량 비교</li>
+        <li>유입·조회·노출·예약 Funnel 분석</li>
+        <li class="core">이용자 구성 분석 (이용자 수 · 이용빈도 · 헤비유저)</li>
+        <li>Pricing Experiment</li>
+        <li class="core">유관부서 분석 및 실행 요청</li>
+        <li class="core">Next Best Action 결정</li>
+        <li class="core">개선 효과 및 BEP 재측정</li>
+      </ul>
+    </article>
+
+    <article class="role fleet">
+      <span class="tag fleet">Fleet Performance</span>
+      <h3>배치·공급·원가</h3>
+      <div class="q">“현재 <span class="pz"><span class="ph">차고지가 이 차량에 적합한가?</span> <span class="ph">옮긴다면 어디가 더 나은가?”</span></span></div>
+      <ul>
+        <li>차고지 수요·공급</li><li>차고지별 선호 차종·유종에 맞는 배치</li><li>증차 가능 여부</li><li>주차면</li><li>주차비</li><li>재배치 후보</li><li>이동비(탁송비) 및 운영비</li><li>차량 재배치 실행</li><li>차종 교체 / 반납 / Exit</li>
+      </ul>
+    </article>
+  </div>
+
+  <div class="relay">
+    <div>
+      <h4>요청과 회신</h4>
+      <ol>
+        <li><span class="tag growth">Growth</span><span>이상 차량을 찾고 <b>차량 상태 확인</b>⁠을 Ops에 요청</span></li>
+        <li><span class="tag ops">Ops</span><span>정상화하고 <span class="pz"><span class="ph">결과를 Growth에 회신,</span> <span class="ph">Growth가</span></span> 재측정</span></li>
+        <li><span class="tag growth">Growth</span><span>수요 근거(추가 수요·미충족 수요·이용자 구성)를 정리해 Fleet에 <b>배치 검토</b> 요청</span></li>
+        <li><span class="tag fleet">Fleet</span><span>공급·운영·원가 <span class="pz"><span class="ph">조건을 결합해 재배치 판단 후</span> <span class="ph">실행, 결과를 Growth에</span></span> 회신</span></li>
+      </ol>
+    </div>
+    <div>
+      <h4>Fleet이 차고지를 고르는 방식</h4>
+      <ol>
+        <li><span class="tag growth">1</span><span>Growth가 <b>잠재수요, 미충족 수요, 이용자 구성</b>⁠을 확인한다</span></li>
+        <li><span class="tag fleet">2</span><span>Fleet이 <b>선호 차종·유종, 공급·운영·원가</b> 관점의 경제성을 결합한다</span></li>
+        <li><span class="tag plain">3</span><span>“매출이 높은 차고지”가 아니라 <b>차량 <span class="pz"><span class="ph">한 대를 넣었을 때</span> <span class="ph">순증 기여이익이 가장 큰</span></span> 차고지</b>⁠로 결정한다</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="page-action"><span class="k">ACTION</span><span>BEP 미달 차량 회의는 <b>Growth가 주관</b>⁠합니다. <span class="pz"><span class="ph">Ops와 Fleet은 자기 질문(Q1 / Q6)에 대한 답과 실행 결과를 가져옵니다.</span> <span class="ph">부서별로 해야 할 일과 필요한 데이터는</span></span> <a href="#dept" style="font-weight:700">부서별 기준</a>⁠에 있습니다.</span></div>
+</section>
+
+<!-- ============ PAGE 4 ============ -->
+<section class="page" id="p4">
+  <div class="page-eyebrow"><b>4 / 5</b><span>어디로 옮기는가</span></div>
+  <h2>어느 차고지로 옮길 것인가?</h2>
+  <p class="page-lead"><span class="ph">후보 차고지는 세 개의 관문을</span> <span class="ph">순서대로 통과해야 합니다.</span><br><span class="ph">앞 관문에서 떨어지면</span> <span class="ph">뒤 계산은 하지 않습니다.</span></p>
+
+  <div class="gates">
+    <article class="gate">
+      <span class="g">GATE 1</span>
+      <h3>차량을 추가할 수 있는가?</h3>
+      <span class="en">CAN WE ADD?</span>
+      <div class="tags"><span class="tag fleet">Fleet Performance 확인</span></div>
+      <ul><li>주차면 확보 가능</li><li>계약상 증차 가능</li><li>운영 가능</li><li>차종 제한 없음</li></ul>
+      <div class="verdict">
+        <div><span class="yn no">NO</span><span>후보 제외</span></div>
+        <div><span class="yn yes">YES</span><span>Gate 2로</span></div>
+      </div>
+    </article>
+
+    <article class="gate">
+      <span class="g">GATE 2</span>
+      <h3>차량을 추가하면 더 팔 수 있는가?</h3>
+      <span class="en">CAN WE SELL MORE?</span>
+      <div class="tags"><span class="tag growth">Growth</span><span class="tag fleet">Fleet</span></div>
+      <p class="desc">현재 매출이 높은지가 아니라 <b>공급 부족으로 놓치고 있는 추가 수요</b>⁠가 있는지를 봅니다.</p>
+      <div class="chips">
+        <span class="chip">높은 가동률</span><span class="chip unmet">피크타임 차량 부족</span><span class="chip unmet">예약 가능 차량 없음</span><span class="chip unmet">원하는 차종 부재</span><span class="chip unmet">예약 실패</span><span class="chip unmet">인근 차고지 재검색</span><span class="chip">유사차종 높은 성과</span><span class="chip">지속적인 수요 증가</span><span class="chip">선호 차종·유종과 일치</span>
+      </div>
+      <p class="note" style="margin-top:2px">노란 칸은 미충족 수요 신호입니다.</p>
+      <div class="verdict">
+        <div><span class="yn no">NO</span><span>추가 수요 없음 · 후보 제외</span></div>
+        <div><span class="yn yes">YES</span><span>Gate 3으로</span></div>
+      </div>
+    </article>
+
+    <article class="gate">
+      <span class="g">GATE 3</span>
+      <h3>그래서 실제로 돈이 되는가?</h3>
+      <span class="en">SHOULD WE ADD?</span>
+      <div class="tags"><span class="tag growth">Growth</span><span class="tag fleet">Fleet</span></div>
+      <div class="sum" aria-label="월 순증 기여이익 계산식">
+        <div><span>추가 차량 예상매출</span><b>+</b></div>
+        <div class="neg"><span>기존 차량 매출 잠식</span><b>−</b></div>
+        <div class="neg"><span>기존 차고지 이탈 매출손실</span><b>−</b></div>
+        <div class="neg"><span>추가 주차비</span><b>−</b></div>
+        <div class="neg"><span>이동비(탁송비)</span><b>−</b></div>
+        <div class="neg"><span>추가 운영비</span><b>−</b></div>
+        <div class="tot"><span>= 월 순증 기여이익</span><b>±</b></div>
+      </div>
+      <div class="decide">아래 <b>세 가지가 모두</b> 충족되면 재배치 실행<br>① <span class="pz"><span class="ph">순증 기여이익 &gt;</span> <span class="ph">0 ② 목표 회수기간 충족 ③ 예상 BEP 기준 충족</span></span><br><span class="prop">②·③ 기준값 팀 합의 필요</span></div>
+      <div class="verdict">
+        <div><span class="yn no">NO</span><span>유지 또는 다른 후보 검토</span></div>
+        <div><span class="yn yes">YES</span><span>재배치 실행</span></div>
+      </div>
+    </article>
+  </div>
+
+  <div class="eq3">
+    <div class="cell"><h4>증차 가능</h4><p class="qq">차를 넣을 수 있는가?</p></div>
+    <div class="ne">≠</div>
+    <div class="cell"><h4>증차 필요</h4><p class="qq">추가 차량을 받아줄 수요가 있는가?</p></div>
+    <div class="ne">≠</div>
+    <div class="cell last"><h4>증차 타당</h4><p class="qq">비용과 매출 잠식을 고려해도 회사 전체 이익이 늘어나는가?</p></div>
+  </div>
+
+  <div class="final-q">
+    <p class="not">“어디가 매출이 높은가?”</p>
+    <p class="yes">“이 차량 한 대를 어디에 배치해야 회사 전체 이익이 가장 많이 증가하는가?”</p>
+  </div>
+
+  <div class="page-action"><span class="k">ACTION</span><span>세 관문을 모두 통과한 후보 중 <b>순증 기여이익이 가장 큰 곳</b>⁠을 <span class="pz"><span class="ph">Fleet이 실행하고,</span> <span class="ph">4~8주 뒤 Growth가 BEP를 다시</span></span> 측정합니다.</span></div>
+</section>
+
+<!-- ============ PAGE 5 ============ -->
+<section class="page" id="p5">
+  <div class="page-eyebrow"><b>5 / 5</b><span>한 대의 의사결정</span></div>
+  <h2>한 대의 차량은 처음부터 끝까지 어떻게 결정되는가?</h2>
+  <p class="page-lead"><span class="ill">Illustrative Example</span> 실제 데이터가 아닌 설명용 예시입니다.</p>
+
+  <div class="vehicle">
+    <div><h3>카니발 #123</h3><div class="loc">강남 A 차고지</div></div>
+    <div class="bepnow"><div><div style="font-size:12px;color:var(--muted)">BEP 달성률</div><div class="num">68%</div></div><span class="crit">Critical</span></div>
+  </div>
+
+  <div class="case">
+    <article class="cs">
+      <div class="no">①</div>
+      <h4>정상 판매 가능 여부 <span class="tag ops">Q1 · Ops</span></h4>
+      <div class="res"><span class="pass">PASS</span>⁠다음 질문으로</div>
+      <ul class="facts"><li>사고 없음</li><li>정비 이상 없음</li><li>비가동 이상 없음</li></ul>
+    </article>
+
+    <article class="cs">
+      <div class="no">②</div>
+      <h4>현재 차고지 수요 <span class="tag growth">Q2 · Growth</span></h4>
+      <div class="res go">차고지 수요 문제 가능성⁠<small>가격 할인보다 재배치 검토를 우선한다</small></div>
+      <ul class="facts"><li>차고지 조회·예약 수요가 지역 평균 대비 낮음</li><li>이용자 수와 인당 이용빈도가 모두 낮음 (헤비유저 이탈은 아님)</li><li>이 차고지는 대형 승합 선호가 낮은 편</li></ul>
+    </article>
+
+    <article class="cs">
+      <div class="no">③</div>
+      <h4>후보 차고지: 잠실 B <span class="tag fleet">Gate 1~2 · Fleet + Growth</span></h4>
+      <div class="res act">추가 수요 존재⁠<small>Gate 1 · Gate 2 통과</small></div>
+      <ul class="facts"><li>유사차종 높은 가동률</li><li>주말 차량 부족</li><li>예약 가능 차량 부족 발생</li><li>추가 주차면 확보 가능</li></ul>
+    </article>
+
+    <article class="cs">
+      <div class="no">④</div>
+      <h4>경제성 <span class="tag fleet">Gate 3 · Fleet + Growth</span></h4>
+      <div class="res act">재배치 실행⁠<small>월 순증 기여이익 +27만원</small></div>
+      <div class="sum" style="grid-column:2/-1;margin-top:4px">
+        <div><span>추가 예상매출</span><b>+75만원</b></div>
+        <div class="neg"><span>기존 차량 매출 잠식</span><b>−10만원</b></div>
+        <div class="neg"><span>출발 차고지 매출손실</span><b>−15만원</b></div>
+        <div class="neg"><span>주차비</span><b>−18만원</b></div>
+        <div class="neg"><span>이동비(탁송비)·운영비</span><b>−5만원</b></div>
+        <div class="tot"><span>월 순증 기여이익</span><b>+27만원</b></div>
+      </div>
+    </article>
+
+    <article class="cs">
+      <div class="no">⑤</div>
+      <h4>결과 <span class="tag growth">Q5 · Growth</span></h4>
+      <div class="res done">재배치 유지⁠<small>8주 후 재측정</small></div>
+      <div class="bepbar" style="grid-column:2/-1;margin-top:0">
+        <div class="bar-wrap" style="padding-right:24px">
+          <div class="bar-track" aria-label="BEP 달성률 68%에서 96%로 개선">
+            <div class="bar-fill bar-96"></div>
+            <div class="bar-fill bar-68" style="opacity:.9;background:var(--ops)"></div>
+            <span class="bar-mark" style="left:68%">재배치 전 68%</span>
+            <span class="bar-mark m96" style="left:96%;top:34px;color:var(--growth-text)">8주 후 96%</span>
+            <span class="bar-100"></span>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="page-action"><span class="k">ACTION</span><span>한 건이 끝날 때마다 <b>어느 <span class="pz"><span class="ph">질문에서 멈췄고</span> <span class="ph">어떤 Action으로</span></span> 해결했는지</b>⁠를 <span class="pz"><span class="ph">기록합니다. 96%처럼 100%에 못 미치면</span> <span class="ph">다음 재측정에서</span> <span class="ph">남은 차이를</span></span> 확인합니다.</span></div>
+</section>
+
+<details class="qa" id="qa12">
+  <summary>이 자료가 답하는 12가지 질문</summary>
+  <ol>
+    <li><span>어떤 차량부터 관리하는가</span><a href="#p2">2장 START</a></li>
+    <li><span>BEP가 낮으면 무엇부터 확인하는가</span><a href="#q1">Q1</a></li>
+    <li><span>사고·정비 문제는 누가 확인하는가</span><a href="#p3">3장 Ops</a></li>
+    <li><span>차고지 수요 부족은 어떻게 판단하는가</span><a href="#q2">Q2</a></li>
+    <li><span>노출 문제와 가격 문제를 어떻게 구분하는가</span><a href="#q3">Q3 → Q4</a></li>
+    <li><span>언제 가격 할인을 하는가</span><a href="#q4">Q4 조건 4가지</a></li>
+    <li><span>할인으로 주변 차량 매출이 줄어든 것은 어떻게 확인하는가</span><a href="#pb-08">Playbook 08</a></li>
+    <li><span>언제 재배치를 검토하는가</span><a href="#q5">Q2 NO · Q5 NO</a></li>
+    <li><span>재배치 후보 차고지는 어떤 기준으로 선정하는가</span><a href="#p4">4장 Gate 1~2</a></li>
+    <li><span>주차비까지 고려했을 때 이익인지 어떻게 판단하는가</span><a href="#p4">4장 Gate 3</a></li>
+    <li><span>누가 최종적으로 다음 Action을 관리하는가</span><a href="#p3">3장 Growth</a></li>
+    <li><span>그래도 BEP를 달성하지 못하면 어떻게 하는가</span><a href="#pb-10">Q6 NO · Playbook 10</a></li>
+  </ol>
+</details>
+
+<!-- ============ PART 2 ============ -->
+<div class="part-label" id="part2">PART 2 · Detailed Playbook</div>
+
+<div class="p2-intro"><b>원본 문서 미반영 안내.</b> <span class="pz"><span class="ph">첨부된 「투루카 차량 매출 증대 워크플로우」 원본이 이 작업에 전달되지 않아,</span> <span class="ph">이 파트의 계산식·구간·기간은</span></span> <b>새로 제안한 초안</b>⁠입니다. <span class="prop">제안</span> <span class="pz"><span class="ph">표시가 있는 값은 원본의 기준으로 교체해야 합니다.</span> <span class="ph">프로젝트 문서(그로스팀·플릿퍼포먼스팀 협업 워크플로우)에서</span> <span class="ph">확인된 내용만 근거로 표시했습니다.</span></span></div>
+
+
+<section class="dept" id="dept">
+  <h2>부서별 기준: 해야 할 일과 필요한 데이터</h2>
+  <p class="lead"><span class="ph">회의에서</span> <span class="ph">“우리 부서는 무엇을 하고,</span> <span class="ph">무엇이 있어야 하는가”를</span> <span class="ph">바로 확인하는 표입니다.</span><br><span class="ph">데이터 상태는</span> <span class="ph">프로젝트 문서와</span> <span class="ph">업로드된 대시보드에서</span> <span class="ph">확인된 내용만 적었고,</span> <span class="ph">확인되지 않은 항목은 “확인 필요”로 두었습니다.</span></p>
+  <div class="lkbar" id="lkbar">
+    <div><b>데이터 링크:</b> <span class="pz"><span class="ph">‘필요한 데이터’ 표의 링크는</span> <span class="ph">담당 부서가 링크 시트에 입력합니다.</span></span><br><span class="lkbar-sub"><span class="ph">시트에 붙여넣으면</span> <span class="ph">이 페이지에 바로 반영됩니다.</span> <span class="ph">링크 칸의 [입력 ↗]를 누르면</span> <span class="ph">시트의 해당 행이 열립니다.</span></span></div>
+    <div class="lkbtns"><a class="btn" id="lkSheet" href="#" target="_blank" rel="noopener noreferrer" style="text-decoration:none">링크 시트 열기 ↗</a><span id="lkMsg" class="lkmsg" role="status"></span></div>
+  </div>
+  <div class="tabs" role="tablist" aria-label="부서 선택">
+    <button class="tab t-growth" role="tab" id="tab-growth" aria-selected="true" aria-controls="panel-growth" type="button">Growth</button>
+    <button class="tab t-ops" role="tab" id="tab-ops" aria-selected="false" aria-controls="panel-ops" type="button" tabindex="-1">Ops Optimization</button>
+    <button class="tab t-fleet" role="tab" id="tab-fleet" aria-selected="false" aria-controls="panel-fleet" type="button" tabindex="-1">Fleet Performance</button>
+  </div>
+
+  <!-- Growth -->
+  <div class="panel growth" role="tabpanel" id="panel-growth" aria-labelledby="tab-growth">
+    <div class="panel-head growth"><div class="q">“왜 <span class="pz"><span class="ph">이 차량의 매출이 낮고,</span> <span class="ph">다음에 무엇을 해야 하는가?”</span></span></div><div class="r">차량별 <span class="pz"><span class="ph">매출 성과의 Single Owner.</span> <span class="ph">탐지, 진단, 요청,</span> <span class="ph">결정, 재측정을 모두 맡습니다.</span></span></div></div>
+    <div class="todo">
+      <h3>해야 할 일</h3>
+      <div class="tscroll"><table>
+        <thead><tr><th>언제</th><th>할 일</th><th>결과물 · 기준</th><th>연결</th></tr></thead>
+        <tbody>
+          <tr><td>매주</td><td>BEP <span class="pz"><span class="ph">미달 차량을 찾고</span> <span class="ph">추가 매출 가능액이 큰 순서로 정렬</span></span></td><td>관리 대상 목록 (위험·주의 구분)</td><td>상세 01 · 02</td></tr>
+          <tr><td>대상 차량마다</td><td>차종 <span class="pz"><span class="ph">→ 지역 → 차고지 → 차량 순으로,</span> <span class="ph">같은 차고지 특성끼리 비교해 문제 층을 정함</span></span></td><td>문제 층 한 줄 요약</td><td>상세 03</td></tr>
+          <tr><td>Q1 단계</td><td>Ops에 <span class="pz"><span class="ph">차량 상태 확인 요청,</span> <span class="ph">회신 후 재측정 일정 확정</span></span></td><td>요청: <span class="pz"><span class="ph">차량번호, 의심 불가동 구간,</span> <span class="ph">현재 BEP 달성률</span></span></td><td>Q1 · 상세 04</td></tr>
+          <tr><td>Q2~Q4 단계</td><td>수요·이용자 <span class="pz"><span class="ph">구성·노출·전환을 진단하고</span> <span class="ph">CRM, 노출·상품 개선,</span> <span class="ph">가격 테스트를 실행</span></span></td><td>패턴(A~D)과 Action 기록</td><td>Q2~Q4 · 상세 05 · 06</td></tr>
+          <tr><td>가격 테스트 시</td><td>4가지 <span class="pz"><span class="ph">조건 확인, 차량×시간대·대조군 설계,</span> <span class="ph">종료 후 순증 계산</span></span></td><td>Fleet 순증 &gt; 0 여부</td><td>상세 07 · 08</td></tr>
+          <tr><td>재배치가 필요할 때</td><td>추가 수요·미충족 수요·이용자 구성을 정리해 Fleet에 요청, 후보 제안</td><td>요청서: 대상, 근거, 시급성</td><td>4장 Gate 2</td></tr>
+          <tr><td>Action 후 4~8주</td><td>BEP <span class="pz"><span class="ph">재측정, 다음 Action 결정,</span> <span class="ph">필요 시 Exit 안 작성</span></span></td><td>유지 / 재배치 / Exit 안</td><td>Q5 · 상세 10</td></tr>
+          <tr><td>매주</td><td>BEP <span class="pz"><span class="ph">미달 차량 회의 주관,</span> <span class="ph">진행 상황 기록</span></span></td><td>차량별 현재 위치(Q 번호)와 담당</td><td>상세 11</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <h3>필요한 데이터</h3>
+      <div class="tscroll"><table>
+        <thead><tr><th>데이터</th><th>어디서</th><th>현재 상태</th><th>쓰는 곳</th><th>링크 <span class="lkh">(담당 부서 기입)</span></th></tr></thead>
+        <tbody>
+          <tr><td>차량별 BEP 기준과 달성률</td><td>Weekly Sales Dashboard 차량별 매출관리 탭</td><td class="st part">◐ <span class="pz"><span class="ph">일부 (월 단위 기본,</span> <span class="ph">주 단위는 담당자 확인)</span></span></td><td>01 · 02</td><td class="lk" data-k="g1"></td></tr>
+          <tr><td>가용일당 차량매출, 유효대수</td><td>26년 월별 매출현황 대시보드</td><td class="st part">◐ <span class="pz"><span class="ph">월 단위 확보,</span> <span class="ph">차량 상세 표는 미완성</span></span></td><td>02 · 04</td><td class="lk" data-k="g2"></td></tr>
+          <tr><td>지역·차고지별 검색 → 조회 → 예약 퍼널</td><td>crm-dashboard.jsx</td><td class="st part">◐ <span class="pz"><span class="ph">전사 합계만 확보,</span> <span class="ph">지역·차고지 분해 필요</span></span></td><td>Q2 · 05</td><td class="lk" data-k="g3"></td></tr>
+          <tr><td>예약 <span class="pz"><span class="ph">가능 차량 존재 여부,</span> <span class="ph">미충족 수요 신호</span></span></td><td>앱 검색 원본 로그</td><td class="st no">○ 미확보</td><td>Q2 · Gate 2</td><td class="lk" data-k="g4"></td></tr>
+          <tr><td>이용자 <span class="pz"><span class="ph">수, 인당 이용빈도,</span> <span class="ph">헤비유저, 이탈</span></span></td><td>Weekly <span class="pz"><span class="ph">Sales Dashboard 회원분석 탭 (RFM,</span> <span class="ph">재이용 코호트)</span></span></td><td class="st part">◐ <span class="pz"><span class="ph">이용자 단위 확보,</span> <span class="ph">차량 단위 연결은 확인 필요</span></span></td><td>06</td><td class="lk" data-k="g5"></td></tr>
+          <tr><td>차고지 <span class="pz"><span class="ph">프로필 (선호 차종·유종,</span> <span class="ph">이용 시간대)</span></span></td><td>예약 데이터를 차고지별로 집계</td><td class="st no">○ 신규 구성 필요</td><td>03 · Gate 2</td><td class="lk" data-k="g6"></td></tr>
+          <tr><td>경쟁사 요금, 시장수요</td><td>Weekly <span class="pz"><span class="ph">Sales Dashboard 경쟁사요금비교 탭,</span> <span class="ph">외부 1~3군 지표</span></span></td><td class="st part">◐ 요금 확보, 외부 지표는 조건부</td><td>Q4 · 03</td><td class="lk" data-k="g7"></td></tr>
+          <tr><td>주변 유사차량 매출, 대조군</td><td>그로스팀 내부 데이터</td><td class="st no">○ 신규 확보 필요</td><td>08</td><td class="lk" data-k="g8"></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- Ops -->
+  <div class="panel ops" role="tabpanel" id="panel-ops" aria-labelledby="tab-ops" hidden>
+    <div class="panel-head ops"><div class="q">“이 차량이 정상적으로 판매 가능한 상태였는가?”</div><div class="r">사고, <span class="pz"><span class="ph">정비, 비가동,</span> <span class="ph">품질, 세차, 예약 충돌,</span> <span class="ph">클레임을 확인하고</span> <span class="ph">정상화합니다.</span></span></div></div>
+    <div class="todo">
+      <h3>해야 할 일</h3>
+      <div class="tscroll"><table>
+        <thead><tr><th>언제</th><th>할 일</th><th>결과물 · 기준</th><th>연결</th></tr></thead>
+        <tbody>
+          <tr><td>Growth 요청 접수 시</td><td>대상 <span class="pz"><span class="ph">차량의 불가동 사유를 확인하고</span> <span class="ph">판매 가능 여부를 판정</span></span></td><td>판정(가능 / 불가), 사유, 해당 구간</td><td>Q1 · 상세 04</td></tr>
+          <tr><td>판정이 불가일 때</td><td>정상화를 실행하고 완료일을 회신</td><td>완료일 회신 후 Growth가 재측정 시작</td><td>Q1 NO</td></tr>
+          <tr><td>회신 기한</td><td>요청 접수 후 정해진 기한 안에 회신 <span class="prop">제안 · 기한 합의 필요</span></td><td>기한 미정 상태</td><td>상세 11</td></tr>
+          <tr><td>관리자예약 입력 시</td><td>불가동 <span class="pz"><span class="ph">상세구분을 빠짐없이 입력 (비어 있으면</span> <span class="ph">대시보드에서 “미분류”로 잡힘)</span></span></td><td>상세구분 공백 없음</td><td>상세 04</td></tr>
+          <tr><td>매월</td><td>같은 사유로 반복 불가동되는 차량 목록을 Growth·Fleet에 공유</td><td>반복 불가동 차량 목록 (Exit 판단 근거)</td><td>상세 10</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <h3>필요한 데이터</h3>
+      <div class="tscroll"><table>
+        <thead><tr><th>데이터</th><th>어디서</th><th>현재 상태</th><th>쓰는 곳</th><th>링크 <span class="lkh">(담당 부서 기입)</span></th></tr></thead>
+        <tbody>
+          <tr><td>관리자예약 <span class="pz"><span class="ph">불가동 시간과 상세구분 (사고수리,</span> <span class="ph">정비, 세차/정비,</span> <span class="ph">단말기 점검, 자동차검사, 리콜 등)</span></span></td><td>26년 월별 매출현황 대시보드 불가동률 분석 탭</td><td class="st part">◐ 집계 확보, 원본 연동 방식은 확인 필요</td><td>Q1 · 04</td><td class="lk" data-k="o1"></td></tr>
+          <tr><td>차량 사고 이력</td><td>운영최적화팀 내부 시스템</td><td class="st no">○ 연동 여부 확인 필요</td><td>Q1</td><td class="lk" data-k="o2"></td></tr>
+          <tr><td>정비·세차 일정과 완료 여부</td><td>운영최적화팀 내부 시스템</td><td class="st no">○ 연동 여부 확인 필요</td><td>Q1</td><td class="lk" data-k="o3"></td></tr>
+          <tr><td>차량 품질 점검 결과, 클레임</td><td>운영최적화팀 내부 시스템</td><td class="st no">○ 연동 여부 확인 필요</td><td>Q1 · 10</td><td class="lk" data-k="o4"></td></tr>
+          <tr><td>예약 충돌 기록</td><td>예약 시스템</td><td class="st no">○ 확인 필요</td><td>Q1 · 05</td><td class="lk" data-k="o5"></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- Fleet -->
+  <div class="panel fleet" role="tabpanel" id="panel-fleet" aria-labelledby="tab-fleet" hidden>
+    <div class="panel-head fleet"><div class="q">“현재 <span class="pz"><span class="ph">차고지가 이 차량에 적합한가?</span> <span class="ph">옮긴다면 어디가 더 나은가?”</span></span></div><div class="r">공급, <span class="pz"><span class="ph">운영, 원가 조건을 판단하고</span> <span class="ph">재배치와 차종 교체·반납·Exit를 실행합니다.</span> <span class="ph">결과 KPI(가용성,</span> <span class="ph">배치 효율)의 책임은 Fleet에 있습니다.</span></span></div></div>
+    <div class="todo">
+      <h3>해야 할 일</h3>
+      <div class="tscroll"><table>
+        <thead><tr><th>언제</th><th>할 일</th><th>결과물 · 기준</th><th>연결</th></tr></thead>
+        <tbody>
+          <tr><td>Growth 요청 접수 시</td><td>요청서의 <span class="pz"><span class="ph">필수 항목(대상 세그먼트,</span> <span class="ph">근거, 시급성)을 확인하고</span> <span class="ph">담당 파트로 연결</span></span></td><td>접수 확인, 반려 사유(있다면)</td><td>3장</td></tr>
+          <tr><td>후보 차고지마다</td><td>Gate <span class="pz"><span class="ph">1: 주차면, 계약,</span> <span class="ph">운영 가능 여부,</span> <span class="ph">차종 제한 확인</span></span></td><td>후보별 가능 / 불가</td><td>4장 Gate 1</td></tr>
+          <tr><td>Gate 2 통과 후보마다</td><td>Gate <span class="pz"><span class="ph">3 비용 입력: 추가 주차비,</span> <span class="ph">이동비(탁송비), 추가 운영비</span></span></td><td>후보별 비용표 (Growth가 순증 계산에 사용)</td><td>4장 Gate 3</td></tr>
+          <tr><td>이동 유형 판단</td><td>같은 지역 스팟 이동(상시 가능)인지 지역 간 이동(렌터카 파트너 계약상 한시적)인지 구분</td><td>유형과 가능 기간</td><td>상세 09</td></tr>
+          <tr><td>후보 선정 후</td><td>순증 <span class="pz"><span class="ph">기여이익이 가장 큰 후보로 재배치 실행,</span> <span class="ph">실행일자·이동 차량 수·소요 비용 회신</span></span></td><td>실행 결과 회신</td><td>Q6 · 상세 09</td></tr>
+          <tr><td>Q6 NO일 때</td><td>차종 교체, 반납, Exit를 제휴 차량·자산 차량의 계약 조건에 맞춰 실행</td><td>옵션별 가능 여부와 비용</td><td>상세 10</td></tr>
+          <tr><td>정책 결정</td><td>압박지수와 재고배분 보호 임계치를 주도해 확정 (결과 KPI 책임 조직)</td><td>임계치 합의안</td><td>상세 11</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <h3>필요한 데이터</h3>
+      <div class="tscroll"><table>
+        <thead><tr><th>데이터</th><th>어디서</th><th>현재 상태</th><th>쓰는 곳</th><th>링크 <span class="lkh">(담당 부서 기입)</span></th></tr></thead>
+        <tbody>
+          <tr><td>지역별 거점 개소수, 주차면 추이</td><td>플릿팀 주간업무보고 시트 (거점현황)</td><td class="st">● 확보</td><td>Gate 1</td><td class="lk" data-k="f1"></td></tr>
+          <tr><td>BM별 운영 차량 수 (자산 / 제휴사별)</td><td>플릿팀 주간업무보고 시트 (차량현황)</td><td class="st">● 확보</td><td>Gate 1 · 10</td><td class="lk" data-k="f2"></td></tr>
+          <tr><td>거점 단위 액션 전후 대당 거래액</td><td>플릿팀 주간업무보고 시트 (Weekly Spot Action Effect)</td><td class="st">● 확보 (접근 권한만 확인)</td><td>Q5 · 09</td><td class="lk" data-k="f3"></td></tr>
+          <tr><td>가동률</td><td>플릿팀 주간업무보고 시트</td><td class="st part">◐ 확보, 불가동일 제외 여부는 정의 확인 필요</td><td>Q1 · 09</td><td class="lk" data-k="f4"></td></tr>
+          <tr><td>후보 <span class="pz"><span class="ph">차고지별 주차비,</span> <span class="ph">계약 조건, 증차 가능 대수</span></span></td><td>거점개발전략 및 운영 파트</td><td class="st no">○ 확인 필요</td><td>Gate 1 · 3</td><td class="lk" data-k="f5"></td></tr>
+          <tr><td>이동비(탁송비), 추가 운영비 단가</td><td>플릿 퍼포먼스팀</td><td class="st no">○ 확인 필요</td><td>Gate 3</td><td class="lk" data-k="f6"></td></tr>
+          <tr><td>제휴 차량 계약 조건 (반납 가능 시점, 비용)</td><td>제휴사별 계약</td><td class="st no">○ 확인 필요</td><td>10</td><td class="lk" data-k="f7"></td></tr>
+          <tr><td>데이터 기반 최적배치 로직의 거점별 권장안</td><td>플릿팀 자체 프로젝트</td><td class="st part">◐ 진행 중</td><td>Gate 2 · 3</td><td class="lk" data-k="f8"></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <h3 class="handoff-h">부서 간에 주고받는 것 <span class="prop" style="background:var(--surface-2);color:var(--ink-soft);box-shadow:inset 0 0 0 1px var(--line)">요청 · 회신</span></h3>
+  <div class="handoff">
+    <div><div class="hd"><span class="tag growth">Growth</span><span class="arr">→</span><span class="tag ops">Ops</span></div><ul><li>차량번호, <span class="pz"><span class="ph">의심 불가동 구간,</span> <span class="ph">현재 BEP 달성률</span></span></li></ul></div>
+    <div><div class="hd"><span class="tag ops">Ops</span><span class="arr">→</span><span class="tag growth">Growth</span></div><ul><li>판매 <span class="pz"><span class="ph">가능 판정, 사유,</span> <span class="ph">정상화 완료일</span></span></li></ul></div>
+    <div><div class="hd"><span class="tag growth">Growth</span><span class="arr">→</span><span class="tag fleet">Fleet</span></div><ul><li>대상 <span class="pz"><span class="ph">세그먼트와 수요 근거(추가 수요,</span> <span class="ph">미충족 수요, 이용자 구성)</span></span></li><li>후보 차고지 제안과 시급성</li></ul></div>
+    <div><div class="hd"><span class="tag fleet">Fleet</span><span class="arr">→</span><span class="tag growth">Growth</span></div><ul><li>후보별 <span class="pz"><span class="ph">가능 여부와 비용(주차비,</span> <span class="ph">이동비(탁송비), 운영비)</span></span></li><li>실행일자, 이동 차량 수, 소요 비용</li></ul></div>
+  </div>
+  <p class="note" style="margin-top:14px">● <span class="pz"><span class="ph">확보 / ◐ 일부 확보 또는 조건부 / ○ 미확보 또는 확인 필요.</span> <span class="ph">표의 “연결”은 앞 장의 Q 번호,</span> <span class="ph">Gate, 상세 Playbook 번호입니다.</span></span></p>
+</section>
+
+<div class="p2-head" id="details">
+  <div>
+    <h2>각 단계의 상세 기준</h2>
+    <p><span class="ph">모든 항목은 신호 → 진단 → 결정 → 액션으로 끝납니다.</span><br><span class="ph">앞 5장의 Q1 ~ Q6과 Gate에서 쓰는</span> <span class="ph">숫자와 계산식이 여기에 있습니다.</span></p>
+  </div>
+  <button class="btn" type="button" id="toggleAll">모두 펼치기</button>
+</div>
+
+<!-- 01 -->
+<details class="pb" id="pb-01">
+  <summary><span class="pbno">01</span><span class="pbt">BEP 미달 차량 탐지</span><span class="pbq">이 숫자로 결정하는 것: 관리 대상에 올릴 차량</span><span class="tags"><span class="tag growth">Growth</span></span></summary>
+  <div class="pbbody">
+    <div class="sdda">
+      <div><h5>신호</h5><ul><li>차량별 BEP 달성률</li><li>최근 4주 흐름 <span class="prop">제안</span></li></ul></div>
+      <div><h5>진단</h5><ul><li>일시적(시즌·비가동)인가, 지속적인가</li><li>신규 투입 직후 기간은 제외</li></ul></div>
+      <div><h5>결정</h5><ul><li>관리 대상 편입 여부</li><li>위험·주의·정상 구분</li></ul></div>
+      <div><h5>액션</h5><ul><li>대상 목록 확정 후 Q1로</li></ul></div>
+    </div>
+    <div class="formula">BEP 달성률 = 차량의 월 실적 ÷ 차량의 월 BEP 기준
+(실적을 매출로 볼지 기여이익으로 볼지는 원본 기준에 맞춰 확정)</div>
+    <div class="tscroll"><table>
+      <thead><tr><th>구간 <span class="prop">제안</span></th><th>의미</th><th>다음 행동</th></tr></thead>
+      <tbody>
+        <tr><td>70% 미만 (위험 / Critical)</td><td>즉시 원인 확인이 필요한 차량</td><td>이번 주 Q1부터 시작</td></tr>
+        <tr><td>70% 이상 ~ 100% 미만 (주의)</td><td>개선 여지가 있는 차량</td><td>우선순위(02)에 따라 순서대로</td></tr>
+        <tr><td>100% 이상 (정상)</td><td>관리 대상 아님</td><td>월 <span class="pz"><span class="ph">단위로 확인. 헤비유저 의존이 높으면</span> <span class="ph">관찰 대상(06)</span></span></td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">데이터: <span class="pz"><span class="ph">Weekly Sales Dashboard의 차량별 매출관리 탭이 기본 월 단위로 집계됩니다.</span> <span class="ph">저매출 차종의 주 단위 차량번호별 조회는 BK님 확인 사항이며</span> <span class="ph">담당자 재확인이 필요합니다.</span></span></p>
+  </div>
+</details>
+
+<!-- 02 -->
+<details class="pb" id="pb-02">
+  <summary><span class="pbno">02</span><span class="pbt">추가 매출 가능액으로 우선순위 정하기</span><span class="pbq">이 숫자로 결정하는 것: 어떤 차량부터 볼 것인가</span><span class="tags"><span class="tag growth">Growth</span></span></summary>
+  <div class="pbbody">
+    <div class="sdda">
+      <div><h5>신호</h5><ul><li>가용일당 차량매출⁠<small class="en">RevPAC</small></li><li>비교 기준 차량의 같은 값</li></ul></div>
+      <div><h5>진단</h5><ul><li>기준 대비 얼마나 덜 벌고 있는가</li></ul></div>
+      <div><h5>결정</h5><ul><li>추가 매출 가능액이 큰 순서</li><li>시급한 건은 비용과 무관하게 먼저</li></ul></div>
+      <div><h5>액션</h5><ul><li>상위 차량부터 Q1 진행</li></ul></div>
+    </div>
+    <div class="formula"><b>가용일당 차량매출</b> = 기간 매출 ÷ 판매 가능했던 일수
+(사고·정비 등 비가동일은 일수에서 제외)
+
+<b>추가 매출 가능액</b> = (비교 기준의 가용일당 차량매출 − 이 차량의 가용일당 차량매출) × 판매 가능 일수</div>
+    <p class="t">비교 기준은 같은 차종·같은 지역의 중앙값 또는 상위 구간으로 정합니다. <span class="prop">제안 · 기준 선택은 팀 합의</span></p>
+    <p class="note">판매 <span class="pz"><span class="ph">가능했던 일수는 26년 월별 매출현황 대시보드의 유효대수(일별 1 − 관리자예약 불가동시간÷24를 월로 합산) 정의와 맞추면</span> <span class="ph">두 자료의 대당 매출이 같은 분모를 씁니다.</span></span> <span class="prop">제안</span></p>
+    <p class="note">근거: <span class="pz"><span class="ph">기존 협업 워크플로우의 실행 우선순위 방식은 “시급성(특히 되돌릴 수 없는 기회)이 기준을 넘으면</span> <span class="ph">즉시 실행, 나머지는 기대 효과 대비 실행비용 순”입니다.</span> <span class="ph">같은 방식을 차량 단위에 적용합니다.</span></span></p>
+  </div>
+</details>
+
+<!-- 03 -->
+<details class="pb" id="pb-03">
+  <summary><span class="pbno">03</span><span class="pbt">차종 → 지역 → 차고지 → 차량 비교 진단</span><span class="pbq">이 숫자로 결정하는 것: 문제가 어느 층에 있는가</span><span class="tags"><span class="tag growth">Growth</span></span></summary>
+  <div class="pbbody">
+    <div class="sdda">
+      <div><h5>신호</h5><ul><li>같은 차종·지역·차고지 안에서의 위치</li></ul></div>
+      <div><h5>진단</h5><ul><li>큰 단위부터 비교해 낮은 층을 찾는다</li></ul></div>
+      <div><h5>결정</h5><ul><li>문제 층에 맞는 질문(Q)으로 이동</li></ul></div>
+      <div><h5>액션</h5><ul><li>해당 부서에 확인 요청</li></ul></div>
+    </div>
+    <div class="tscroll"><table>
+      <thead><tr><th>비교 단위</th><th>낮게 나오면 의미하는 것</th><th>이동할 질문</th></tr></thead>
+      <tbody>
+        <tr><td>차종 전체가 같은 지역 평균보다 낮음</td><td>상품·가격 경쟁력 문제 가능성</td><td>Q3 → Q4</td></tr>
+        <tr><td>지역 전체가 낮음</td><td>지역 수요 또는 시장 문제 가능성</td><td>Q2 (시장수요 확인 포함)</td></tr>
+        <tr><td>같은 차고지의 다른 차량은 정상인데 이 차량만 낮음</td><td>차량 상태 또는 노출 문제</td><td>Q1 → Q3</td></tr>
+        <tr><td>차고지의 모든 차량이 낮음</td><td>차고지 수요 문제</td><td>Q2</td></tr>
+        <tr><td>같은 <span class="pz"><span class="ph">차고지에서 선호가 높은 차종·유종은 잘 나오는데</span> <span class="ph">이 차량만 낮음</span></span></td><td>차고지 선호와 차량이 안 맞음</td><td>Q2 → Q6</td></tr>
+      </tbody>
+    </table></div>
+    <div>
+      <h4>비교는 같은 차고지 특성끼리 <span class="prop">제안</span></h4>
+      <p class="t">선호하는 <span class="pz"><span class="ph">차종과 유종은 지역과 차고지마다 다릅니다.</span> <span class="ph">같은 차종이라도 차고지 특성이 다르면</span> <span class="ph">평균과 비교하는 것이 맞지 않으므로,</span> <span class="ph">비교 기준은</span></span> <b>같은 지역·비슷한 차고지의 같은 차종·같은 유종</b>⁠으로 잡습니다.</p>
+      <ul class="note" style="display:grid;gap:3px;margin-top:8px">
+        <li>차고지별 <span class="pz"><span class="ph">이용 차종·유종 비중,</span> <span class="ph">차종·유종별 대당 매출을 차고지 프로필로 정리</span></span></li>
+        <li>차고지 선호와 이 차량의 차종·유종이 안 맞음: 가격이나 노출 개선보다 차종 교체 또는 선호가 맞는 차고지로 재배치(Q2 → Q6)</li>
+      </ul>
+    </div>
+    <p class="note">시장수요 <span class="pz"><span class="ph">하락이 확인되면</span> <span class="ph">개별 차량이 아니라 시장 문제로 분류합니다.</span> <span class="ph">기존 원인 분류의 “시장 이슈(Case E)”와 같은 개념입니다.</span></span></p>
+  </div>
+</details>
+
+<!-- 04 -->
+<details class="pb" id="pb-04">
+  <summary><span class="pbno">04</span><span class="pbt">차량 상태 및 비가동 진단</span><span class="pbq">이 숫자로 결정하는 것: 판매 가능한 차량이었는가</span><span class="tags"><span class="tag ops">Ops</span></span></summary>
+  <div class="pbbody">
+    <div class="sdda">
+      <div><h5>신호</h5><ul><li>비가동일 비율</li><li>사고·정비·세차 이력</li><li>예약 충돌·클레임</li></ul></div>
+      <div><h5>진단</h5><ul><li>낮은 매출이 비가동 때문인가</li></ul></div>
+      <div><h5>결정</h5><ul><li>판매 가능 상태 여부 (Q1)</li></ul></div>
+      <div><h5>액션</h5><ul><li>NO: Ops가 정상화 후 재측정</li><li>YES: Q2로</li></ul></div>
+    </div>
+    <p class="t">플릿팀 시트의 <b>가동률</b>⁠(운영 <span class="pz"><span class="ph">차량 중 실제 이용된 비율)이 낮다고</span> <span class="ph">수요가 부족한 것은 아닙니다.</span> <span class="ph">정비·세차로 못 판 날이 섞여 있을 수 있으므로,</span> <span class="ph">수요를 판단하기 전에 비가동일을 먼저 빼고 봅니다.</span></span></p>
+    <div class="formula"><b>불가동률</b> <span class="pz"><span class="ph">= 관리자예약으로 고객 예약이 막힌 시간 ÷ (24시간 × 해당 월 일수 × 유효대수) × 100
+※ 100 − 가동률로 계산하지 않음.</span> <span class="ph">고객 예약이 없어 비어 있던 시간은 불가동에 포함하지 않음</span></span></div>
+    <p class="t">26년 <span class="pz"><span class="ph">월별 매출현황 대시보드의 「불가동률 분석」 탭이 이 정의로 이미 차량소속별·차량별 불가동률과 사유별(사고수리,</span> <span class="ph">정비, 세차/정비,</span> <span class="ph">단말기 점검, 자동차검사,</span> <span class="ph">리콜 등 상세구분) 내역을 보여줍니다.</span> <span class="ph">Q1의 사고·정비·비가동 확인은 이 탭에서</span> <span class="ph">해당 차량의 불가동 사유를 보는 것부터 시작할 수 있습니다.</span></span></p>
+    <p class="note">대시보드 <span class="pz"><span class="ph">안내문 기준으로 차량별 월별 매출 상세 표는 아직 수정이 필요한 미완성 상태이므로,</span> <span class="ph">차량 단위 수치는 담당자 확인 후</span> <span class="ph">사용합니다. 정상화 후</span> <span class="ph">재측정 시점은 정비 완료 후</span> <span class="ph">2~4주를 제안합니다.</span></span> <span class="prop">제안</span> Ops 시스템의 사고·정비 데이터 연동 방식은 아직 정해지지 않았습니다.</p>
+  </div>
+</details>
+
+<!-- 05 -->
+<details class="pb" id="pb-05">
+  <summary><span class="pbno">05</span><span class="pbt">수요 · 조회 · 노출 · 예약 진단</span><span class="pbq">이 <span class="pz"><span class="ph">숫자로 결정하는 것: 수요 문제인가,</span> <span class="ph">노출 문제인가, 전환</span></span> 문제인가</span><span class="tags"><span class="tag growth">Growth</span><span class="tag fleet">Fleet</span></span></summary>
+  <div class="pbbody">
+    <div class="sdda">
+      <div><h5>신호</h5><ul><li>수요 퍼널 / 전환 퍼널</li><li>미충족 수요 신호</li></ul></div>
+      <div><h5>진단</h5><ul><li>어느 단계에서 급격히 줄어드는가</li></ul></div>
+      <div><h5>결정</h5><ul><li>Q2 수요 / Q3 노출 / Q4 전환</li></ul></div>
+      <div><h5>액션</h5><ul><li>단계별 담당 Action으로</li></ul></div>
+    </div>
+    <div class="twocol">
+      <div class="card-s">
+        <h4>A. 수요 퍼널 <small class="en">Demand Funnel</small></h4>
+        <p class="t" style="margin-bottom:8px">이 차고지에 수요가 존재하는가?</p>
+        <ol class="funnel"><li>지역 검색</li><li>차고지 조회</li><li>차량 조회</li><li>예약 가능 차량 확인</li><li>예약 시작</li></ol>
+      </div>
+      <div class="card-s">
+        <h4>B. 전환 퍼널 <small class="en">Conversion Funnel</small></h4>
+        <p class="t" style="margin-bottom:8px">수요가 실제 예약으로 전환되는가?</p>
+        <ol class="funnel"><li>차량 상세</li><li>예약 시작</li><li>결제</li><li>예약 완료</li></ol>
+      </div>
+    </div>
+    <div>
+      <h4>미충족 수요 신호 <small class="en">Unmet Demand</small></h4>
+      <div class="chips"><span class="chip unmet">차량 없음</span><span class="chip unmet">원하는 시간 예약 불가</span><span class="chip unmet">원하는 차종 없음</span><span class="chip unmet">예약 충돌</span><span class="chip unmet">인근 차고지 재검색</span><span class="chip unmet">다른 차량으로 이동</span><span class="chip unmet">피크타임 공급 부족</span></div>
+      <p class="t" style="margin-top:8px">전환율만 <span class="pz"><span class="ph">보면 “지금 팔린 것”만 보입니다.</span> <span class="ph">미충족 수요는 “차량이 더 있었다면</span> <span class="ph">팔렸을 것”을 보여주므로,</span> <span class="ph">차고지를 판단할 때는 전환율과 따로 표시합니다.</span></span></p>
+    </div>
+    <div class="tscroll"><table>
+      <thead><tr><th>어디서 약한가</th><th>의미</th><th>담당 · Action</th></tr></thead>
+      <tbody>
+        <tr><td>수요 퍼널 앞쪽(검색·차고지 조회)이 약함</td><td>이 차고지로 오는 수요 자체가 적음</td><td>Growth · 재배치 검토(Q2)</td></tr>
+        <tr><td>조회는 많은데 미충족 수요 신호가 많음</td><td>차량이 부족해서 놓침</td><td>Growth + Fleet · 증차·재배치</td></tr>
+        <tr><td>차고지 조회는 정상인데 이 차량의 상세 진입·선택률이 낮음</td><td>노출·상품 문제</td><td>Growth · 노출·상품 개선(Q3)</td></tr>
+        <tr><td>상세는 보는데 예약 시작·결제에서 이탈</td><td>전환 문제 (가격 저항 포함)</td><td>Growth · 비가격 원인 → 가격 테스트(Q4)</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">데이터 <span class="pz"><span class="ph">현황: 예약 가능 차량 존재 여부,</span> <span class="ph">차량 없음, 예약 충돌 같은 신호는 앱 검색 원본 로그가 필요하며</span> <span class="ph">현재 미확보 상태입니다(기존 협업 워크플로우 미확정 사항 3번).</span> <span class="ph">확보 전에는 플릿팀 시트의 거점·차량 현황을 보조 프록시로 씁니다.</span></span></p>
+  </div>
+</details>
+
+<!-- 06 -->
+<details class="pb" id="pb-06">
+  <summary><span class="pbno">06</span><span class="pbt">이용자 구성 진단 (이용자 수 · 이용빈도 · 헤비유저)</span><span class="pbq">이 <span class="pz"><span class="ph">숫자로 결정하는 것: 매출이 낮은 이유,</span> <span class="ph">또는 매출이 높아도 위험한 이유가 이용자에게</span></span> 있는가</span><span class="tags"><span class="tag growth">Growth</span></span></summary>
+  <div class="pbbody">
+    <div class="sdda">
+      <div><h5>신호</h5><ul><li>이용자 수</li><li>인당 이용빈도</li><li>헤비유저 이용 변화</li><li>상위 이용자 매출 비중</li></ul></div>
+      <div><h5>진단</h5><ul><li>이용자가 <span class="pz"><span class="ph">줄었나, 빈도가 줄었나,</span> <span class="ph">소수에 기대고 있나</span></span></li></ul></div>
+      <div><h5>결정</h5><ul><li>CRM / 수요·노출 개선 / 재배치 / 관찰 유지</li></ul></div>
+      <div><h5>액션</h5><ul><li>패턴별 담당 Action (아래 표)</li></ul></div>
+    </div>
+    <div class="formula"><b>매출</b> = 이용자 수 × 인당 이용 횟수 × 건당 매출
+매출이 낮은 이유가 세 항목 중 어디에 있는지 먼저 가른다
+
+<b>이용자 집중도</b><small class="en">HHI</small> = 이용자별 매출 비중을 각각 제곱해 모두 더한 값 (0 ~ 1)
+1에 가까울수록 소수 이용자에게 매출이 몰려 있음</div>
+    <div class="tscroll"><table>
+      <thead><tr><th>이용자 패턴</th><th>의미</th><th>담당 · Action</th></tr></thead>
+      <tbody>
+        <tr><td><b>A.</b> <span class="pz"><span class="ph">이용자 수는 정상,</span> <span class="ph">헤비유저의 이용이 크게 줄었음</span></span></td><td>헤비유저 이탈. 차량이나 차고지 문제가 아닐 수 있음</td><td>Growth <span class="pz"><span class="ph">· 개인 단위 CRM,</span> <span class="ph">이탈 원인(이사·경쟁사·불만) 확인</span></span></td></tr>
+        <tr><td><b>B.</b> <span class="pz"><span class="ph">이용자 수도 적고</span> <span class="ph">인당 이용빈도도 낮음</span></span></td><td>이 차량에 대한 수요 기반 자체가 약함</td><td>Growth <span class="pz"><span class="ph">+ Fleet · 차고지 수요·차종·유종 적합성 점검(Q2),</span> <span class="ph">재배치(Q6)</span></span></td></tr>
+        <tr><td><b>C.</b> <span class="pz"><span class="ph">이용자 수는 많은데</span> <span class="ph">인당 이용빈도가 낮음 (한 번 쓰고 끝)</span></span></td><td>재방문 문제</td><td>Growth <span class="pz"><span class="ph">· 재방문 CRM,</span> <span class="ph">상품·이용 경험 점검</span></span></td></tr>
+        <tr><td><b>D.</b> <span class="pz"><span class="ph">이용자 수는 적은데</span> <span class="ph">이용빈도가 매우 높음 (소수 단골)</span></span></td><td>매출은 좋아도 몇 명의 이탈에 매우 취약</td><td>Growth <span class="pz"><span class="ph">· 신규 이용자 확보,</span> <span class="ph">단골 이탈 방지,</span> <span class="ph">재배치 전 영향 확인</span></span></td></tr>
+      </tbody>
+    </table></div>
+    <div>
+      <h4>매출이 좋은 차량도 같은 기준으로 봅니다</h4>
+      <p class="t">BEP를 <span class="pz"><span class="ph">달성한 차량이라도 패턴 D처럼 소수 이용자에게 매출이 몰려 있으면</span> <span class="ph">관찰 대상으로 올립니다.</span> <span class="ph">헤비유저 한 명이 빠지면</span> <span class="ph">바로 BEP 미달 차량이 되기 때문에,</span> <span class="ph">미달이 된 뒤가 아니라 달성 중일 때</span> <span class="ph">먼저 확인합니다.</span></span></p>
+      <ul class="note" style="display:grid;gap:4px;margin-top:8px">
+        <li>헤비유저의 기준(예: 월 이용 횟수 또는 매출 상위 몇 명)은 <span class="prop">제안 · 팀 합의 필요</span></li>
+        <li>이 <span class="pz"><span class="ph">차고지의 헤비유저가 근처 거주자라면</span> <span class="ph">재배치 시 그 매출이 같이 빠질 수 있으므로,</span> <span class="ph">재배치 전에 반드시 확인(Gate 3의 기존 차고지 이탈 매출손실에 반영)</span></span></li>
+        <li>이용자 <span class="pz"><span class="ph">수가 비슷해도 신규와 재방문 비율이 다르면</span> <span class="ph">해법이 다름: 신규가 많으면</span> <span class="ph">유입·노출, 재방문이 많으면 CRM</span></span></li>
+      </ul>
+    </div>
+    <p class="note">데이터: <span class="pz"><span class="ph">이용자 단위 이탈 신호는 Weekly Sales Dashboard 회원분석 탭의 RFM 세그먼트와 재이용 코호트를 활용할 수 있습니다.</span> <span class="ph">차량 단위로 이용자를 연결해 볼 수 있는지는 담당자 확인이 필요합니다.</span></span></p>
+  </div>
+</details>
+
+<!-- 07 -->
+<details class="pb" id="pb-07">
+  <summary><span class="pbno">07</span><span class="pbt">가격 Action</span><span class="pbq">이 숫자로 결정하는 것: 가격 테스트를 해도 되는가</span><span class="tags"><span class="tag growth">Growth · Pricing 파트</span></span></summary>
+  <div class="pbbody">
+    <div class="sdda">
+      <div><h5>신호</h5><ul><li>전환 퍼널에서 결제 직전 이탈</li><li>유사차종 대비 가격 차이</li></ul></div>
+      <div><h5>진단</h5><ul><li>가격 때문인가, 다른 이유인가</li></ul></div>
+      <div><h5>결정</h5><ul><li>4가지 조건 확인 후 테스트</li></ul></div>
+      <div><h5>액션</h5><ul><li>차량×시간대 한정 가격 테스트</li></ul></div>
+    </div>
+    <div>
+      <h4>가격 테스트는 4가지가 모두 충족될 때만</h4>
+      <div class="tscroll"><table>
+        <thead><tr><th>조건</th><th>확인하는 곳</th></tr></thead>
+        <tbody>
+          <tr><td>① 차량이 정상 판매 가능한 상태</td><td>Q1</td></tr>
+          <tr><td>② 차고지 자체 수요 부족 문제가 아님</td><td>Q2</td></tr>
+          <tr><td>③ 노출·상품 문제를 우선 확인함</td><td>Q3</td></tr>
+          <tr><td>④ 전환 단계에서 가격 저항 가능성이 확인됨</td><td>Q4</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <h4>테스트 설계 <span class="prop">제안</span></h4>
+      <ul class="note" style="display:grid;gap:3px">
+        <li>대상: <span class="pz"><span class="ph">한 차량의 특정 시간대만.</span> <span class="ph">지역 전체 일괄 할인은 하지 않음.</span></span></li>
+        <li>대조군: 같은 시간대의 비대상 유사차량.</li>
+        <li>기간: 2~4주 후 08의 계산으로 판정.</li>
+        <li>종료: <span class="pz"><span class="ph">한 번에 하나만 바꾸고,</span> <span class="ph">종료 조건과 원복 방법을 시작 전에 정해 둠.</span></span></li>
+      </ul>
+    </div>
+    <p class="note">근거: <span class="pz"><span class="ph">기존 협업 워크플로우에서</span> <span class="ph">가격 조정은 “지역×차종 세그먼트 단위,</span> <span class="ph">지역 일괄 금지”,</span> <span class="ph">차고지(스팟) 한정 할인의 세분화 수준은 팀 합의가 필요한 미확정 사항입니다.</span></span></p>
+  </div>
+</details>
+
+<!-- 08 -->
+<details class="pb" id="pb-08">
+  <summary><span class="pbno">08</span><span class="pbt">가격 효과와 기존 차량 매출 잠식 검증</span><span class="pbq">이 숫자로 결정하는 것: 회사 전체가 더 벌었는가</span><span class="tags"><span class="tag growth">Growth</span></span></summary>
+  <div class="pbbody">
+    <div class="sdda">
+      <div><h5>신호</h5><ul><li>대상 차량 매출 변화</li><li>주변 유사차량 매출 변화</li><li>할인 비용</li></ul></div>
+      <div><h5>진단</h5><ul><li>늘어난 <span class="pz"><span class="ph">매출이 새 수요인가,</span> <span class="ph">옮겨 온 수요인가</span></span></li></ul></div>
+      <div><h5>결정</h5><ul><li>순증이 0보다 큰가</li></ul></div>
+      <div><h5>액션</h5><ul><li>유지·확대 / 중단 후 Q5로</li></ul></div>
+    </div>
+    <div class="formula"><b>Fleet 순증</b> = 대상 차량 매출 증가 − 주변 유사차량 매출 감소 − 할인 비용
+
+<b>대조군 비교</b> <small class="en">DiD</small> <span class="pz"><span class="ph">= (대상 차량의 전후</span> <span class="ph">변화) − (대조군의 같은 기간 전후</span> <span class="ph">변화)
+대조군 비교로 시즌·휴일 효과를 걷어낸 뒤에 순증을 계산</span></span></div>
+    <div class="tscroll"><table>
+      <thead><tr><th>예시 <span class="ill">Illustrative</span></th><th class="n">만원/주</th></tr></thead>
+      <tbody>
+        <tr><td>대상 차량 매출 증가 (대조군 보정 후)</td><td class="n">+30</td></tr>
+        <tr><td>주변 유사차량 매출 감소</td><td class="n">−12</td></tr>
+        <tr><td>할인 비용</td><td class="n">−8</td></tr>
+        <tr><td><b>Fleet 순증</b></td><td class="n"><b>+10</b></td></tr>
+      </tbody>
+    </table></div>
+    <p class="t">순증 <span class="pz"><span class="ph">&gt; 0이면</span> <span class="ph">유지하거나 대상을 넓히고,</span> <span class="ph">0 이하이면 중단합니다.</span> <span class="ph">대상 차량만 더 팔렸어도 순증이 0 이하이면</span> <span class="ph">실패로 봅니다.</span></span></p>
+    <p class="note">주변 <span class="pz"><span class="ph">차량 데이터가 필요합니다.</span> <span class="ph">같은 지역 인근 차종·스팟의 이용 건수는 기존 문서에서도 신규 확보가 필요한 항목으로 분류되어 있습니다.</span></span></p>
+  </div>
+</details>
+
+<!-- 09 -->
+<details class="pb" id="pb-09">
+  <summary><span class="pbno">09</span><span class="pbt">차고지 · 재배치 상세 분석</span><span class="pbq">이 숫자로 결정하는 것: 어디로 옮길 것인가</span><span class="tags"><span class="tag fleet">Fleet</span><span class="tag growth">Growth</span></span></summary>
+  <div class="pbbody">
+    <div class="sdda">
+      <div><h5>신호</h5><ul><li>후보 차고지의 가능 여부·추가 수요·비용</li></ul></div>
+      <div><h5>진단</h5><ul><li>Gate 1 → 2 → 3 순서로 걸러냄</li></ul></div>
+      <div><h5>결정</h5><ul><li>월 순증 기여이익이 가장 큰 후보</li></ul></div>
+      <div><h5>액션</h5><ul><li>Fleet 실행 → 4~8주 후 재측정</li></ul></div>
+    </div>
+    <div class="tscroll"><table>
+      <thead><tr><th>단계</th><th>담당</th><th>하는 일</th></tr></thead>
+      <tbody>
+        <tr><td>① 후보 목록</td><td>Fleet + Growth</td><td>같은 <span class="pz"><span class="ph">차종·유종의 선호가 높은 차고지,</span> <span class="ph">인근 차고지부터 나열</span></span></td></tr>
+        <tr><td>② Gate 1</td><td>Fleet</td><td>주차면·계약·운영·차종 제한 확인, 안 되면 제외</td></tr>
+        <tr><td>③ Gate 2</td><td>Growth + Fleet</td><td>미충족 <span class="pz"><span class="ph">수요 신호와 선호 차종·유종 일치 여부 확인,</span> <span class="ph">없으면 제외</span></span></td></tr>
+        <tr><td>④ Gate 3</td><td>Growth + Fleet</td><td>월 <span class="pz"><span class="ph">순증 기여이익 계산,</span> <span class="ph">0 이하·회수기간 미충족이면 제외</span></span></td></tr>
+        <tr><td>⑤ 실행</td><td>Fleet</td><td>순증이 가장 큰 후보로 재배치</td></tr>
+        <tr><td>⑥ 재측정</td><td>Growth</td><td>4~8주 후 BEP 달성률 확인(Q5)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="formula"><b>월 순증 기여이익</b> = 추가 차량 예상매출
+ − 기존 차량 매출 잠식
+ − 기존 차고지 이탈에 따른 매출손실
+ − 추가 주차비 − 이동비(탁송비) − 추가 운영비</div>
+    <h4>이동 제약</h4>
+    <ul class="note" style="display:grid;gap:4px">
+      <li>같은 지역 안에서 스팟 간 이동은 상시 가능합니다.</li>
+      <li>지역 <span class="pz"><span class="ph">간(광역) 이동은 렌터카 파트너 계약상 한시적으로만 가능합니다.</span> <span class="ph">지역 간 이동이 필요한 후보는 기간을 정해 요청하고,</span> <span class="ph">상시 대응을 기대하지 않습니다.</span></span></li>
+      <li>요청처: <span class="pz"><span class="ph">왕복/비대면 전략·운영 파트(스팟·지역 간 재배치),</span> <span class="ph">혼용전략·운영 파트(리턴프리 리밸런싱),</span> <span class="ph">거점개발전략및운영 파트(신규 거점·증차).</span></span></li>
+    </ul>
+    <p class="note">회수기간과 목표 BEP 기준의 수치는 <span class="prop">팀 합의 필요</span>⁠. <span class="pz"><span class="ph">플릿팀이 진행 중인 데이터 기반 최적배치 로직의 입력으로 Growth의 추가 수요·미충족 수요 신호를 전달하는 방식이 가장 자연스럽습니다.</span> <span class="ph">결과 KPI 책임은 Fleet에 있습니다.</span></span></p>
+  </div>
+</details>
+
+<!-- 10 -->
+<details class="pb" id="pb-10">
+  <summary><span class="pbno">10</span><span class="pbt">Exit</span><span class="pbq">이 숫자로 결정하는 것: 이 차량을 계속 운영할 것인가</span><span class="tags"><span class="tag growth">Growth</span><span class="tag fleet">Fleet</span></span></summary>
+  <div class="pbbody">
+    <div class="sdda">
+      <div><h5>신호</h5><ul><li>재배치 후보 없음 또는 재배치 후에도 BEP 미달</li><li>월 기여이익</li></ul></div>
+      <div><h5>진단</h5><ul><li>개선 가능성이 남았는가</li><li>유지하는 비용이 얼마인가</li></ul></div>
+      <div><h5>결정</h5><ul><li>유지 / 차종 교체 / 반납 / 채널 전환 / Exit</li></ul></div>
+      <div><h5>액션</h5><ul><li>Growth가 안을 올리고 Fleet이 실행</li></ul></div>
+    </div>
+    <div class="tscroll"><table>
+      <thead><tr><th>옵션</th><th>언제 선택하나 <span class="prop">제안</span></th></tr></thead>
+      <tbody>
+        <tr><td>차종 교체</td><td>차고지 수요는 있으나 이 차종만 선택되지 않을 때</td></tr>
+        <tr><td>반납(제휴 차량)</td><td>제휴 <span class="pz"><span class="ph">차량이고 계약상 반납이 가능하며,</span> <span class="ph">유지 시 월 기여이익이 계속 마이너스일 때</span></span></td></tr>
+        <tr><td>채널 전환</td><td>현재 판매 방식에서는 수요가 부족하나 다른 판매 방식(채널)에서는 수요가 있을 때</td></tr>
+        <tr><td>Exit</td><td>위 옵션이 모두 경제성이 없을 때</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">자산 <span class="pz"><span class="ph">차량과 제휴 차량은 원가 구조가 다르므로 기여이익은 둘을 섞지 않고</span> <span class="ph">비교합니다. 특히 “내카드주유” 조건 차량은 주행요금 구조가 다릅니다.</span> <span class="ph">Exit의 최종 승인 라인은 아직 확인되지 않았습니다.</span></span></p>
+  </div>
+</details>
+
+<!-- 11 -->
+<details class="pb" id="pb-11">
+  <summary><span class="pbno">11</span><span class="pbt">운영 주기와 KPI</span><span class="pbq">이 숫자로 결정하는 것: 이 체계가 잘 돌고 있는가</span><span class="tags"><span class="tag growth">Growth 주관</span></span></summary>
+  <div class="pbbody">
+    <div class="sdda">
+      <div><h5>신호</h5><ul><li>위험·주의·정상 차량 수</li><li>Action별 성과</li></ul></div>
+      <div><h5>진단</h5><ul><li>어느 단계에서 가장 오래 막히는가</li></ul></div>
+      <div><h5>결정</h5><ul><li>기준·주기 조정, 자동화 대상 선정</li></ul></div>
+      <div><h5>액션</h5><ul><li>주간 회의에서 다음 Action 확정</li></ul></div>
+    </div>
+    <div class="tscroll"><table>
+      <thead><tr><th>주기 <span class="prop">제안</span></th><th>내용</th><th>참석</th></tr></thead>
+      <tbody>
+        <tr><td>주 1회</td><td>BEP <span class="pz"><span class="ph">미달 차량 목록 확인,</span> <span class="ph">우선순위 상위 차량의 Q1~Q6 진행 상황</span></span></td><td>Growth 주관, Ops·Fleet 참석</td></tr>
+        <tr><td>월 1회</td><td>BEP <span class="pz"><span class="ph">기준과 달성률 재산정,</span> <span class="ph">Action별 성과 정리</span></span></td><td>Growth</td></tr>
+        <tr><td>재배치 후 4~8주</td><td>BEP 재측정(Q5)</td><td>Growth + Fleet</td></tr>
+      </tbody>
+    </table></div>
+    <div class="chips" aria-label="운영 KPI">
+      <span class="chip">위험·주의·정상 차량 수</span><span class="chip">BEP 회복까지 걸린 주 수</span><span class="chip">Action별 BEP 회복 비율</span><span class="chip">재배치 건의 월 순증 기여이익 합계</span><span class="chip">헤비유저 의존 관찰 대상 차량 수</span><span class="chip">Exit 건수</span>
+    </div>
+    <p class="note">반복해서 <span class="pz"><span class="ph">검증된 판단 로직과 리포팅만 자동화 대상으로 올립니다.</span> <span class="ph">임계치와 가중치 같은 정책 결정 자체는 사람이 합의합니다.</span></span></p>
+  </div>
+</details>
+
+<div class="page glossary" style="margin-top:22px">
+  <h2 style="font-size:20px" id="gloss">용어 풀이</h2>
+  <div class="tscroll" style="margin-top:12px"><table>
+    <thead><tr><th>이 자료의 표현</th><th>전문용어</th></tr></thead>
+    <tbody>
+      <tr><td>가용일당 차량매출</td><td>RevPAC</td></tr>
+      <tr><td>추가 매출 가능액</td><td>Revenue Gap</td></tr>
+      <tr><td>기존 차량 매출 잠식</td><td>Cannibalization</td></tr>
+      <tr><td>추가 수요</td><td>Marginal Demand</td></tr>
+      <tr><td>미충족 수요</td><td>Unmet Demand</td></tr>
+      <tr><td>이용자 집중도</td><td>HHI</td></tr>
+      <tr><td>대조군 비교</td><td>DiD</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<footer>Part <span class="pz"><span class="ph">1은 지시하신 구조와 예시를 그대로 옮긴 것이고,</span> <span class="ph">Part 2의</span></span> <span class="prop">제안</span> <span class="pz"><span class="ph">항목은 원본 문서</span> <span class="ph">확인 후 교체가 필요합니다.</span></span></footer>
+</main>
+
+<script>
+(function(){
+  try{
+    var btn=document.getElementById('toggleAll');
+    var list=Array.prototype.slice.call(document.querySelectorAll('details.pb'));
+    function sync(){var all=list.every(function(d){return d.open});btn.textContent=all?'모두 접기':'모두 펼치기'}
+    btn.addEventListener('click',function(){var all=list.every(function(d){return d.open});list.forEach(function(d){d.open=!all});sync()});
+    list.forEach(function(d){d.addEventListener('toggle',sync)});
+    // 12질문 등에서 Playbook 앵커로 이동할 때 해당 항목을 연다
+    function openHash(){var h=location.hash.slice(1);var el=h&&document.getElementById(h);if(el&&el.tagName==='DETAILS'){el.open=true}}
+    window.addEventListener('hashchange',openHash);openHash();
+    document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href^="#pb-"]');if(a){var el=document.getElementById(a.getAttribute('href').slice(1));if(el){el.open=true}}});
+
+    // ---- 데이터 링크 (Google 시트에서 읽기) ----
+    // 아래 두 값만 채우면 됩니다. 시트 주소 https://docs.google.com/spreadsheets/d/<SHEET_ID>/edit#gid=<GID>
+    // 시트 공유 설정은 "링크가 있는 모든 사용자: 뷰어" 여야 페이지가 읽을 수 있습니다.
+    // 시트 열: A key | B 부서 | C 데이터명 | D 어디서 | E 현재 상태 | F 링크 | G 담당자 | H 수정일
+    var LINK_SHEET={id:"1vnS_R6ZE2i2ZqSyi8uCbsMeTVZZaZpFCgPJ4i7Tq4FY",gid:"0"};
+    (function(){
+      function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+      function ok(u){try{var x=new URL(u);return (x.protocol==='https:'||x.protocol==='http:')?x.href:null}catch(e){return null}}
+      function parseCSV(t){var rows=[],r=[],f='',q=false,i=0,c;t=t.replace(/^\uFEFF/,'');
+        for(;i<t.length;i++){c=t[i];
+          if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++}else{q=false}}else{f+=c}}
+          else if(c==='"'){q=true}else if(c===','){r.push(f);f=''}
+          else if(c==='\n'){r.push(f);rows.push(r);r=[];f=''}else if(c!=='\r'){f+=c}}
+        if(f!==''||r.length){r.push(f);rows.push(r)}return rows}
+      var cells=Array.prototype.slice.call(document.querySelectorAll('td.lk'));
+      var msg=document.getElementById('lkMsg'),sheetBtn=document.getElementById('lkSheet');
+      var base=LINK_SHEET.id?'https://docs.google.com/spreadsheets/d/'+encodeURIComponent(LINK_SHEET.id)+'/edit#gid='+encodeURIComponent(LINK_SHEET.gid||'0'):'';
+      if(sheetBtn){if(base){sheetBtn.href=base}else{sheetBtn.hidden=true}}
+      function say(t){if(msg)msg.textContent=t}
+      var links={},rowOf={};
+      function render(td){
+        var k=td.dataset.k;td.textContent='';var u=links[k]&&ok(links[k]);
+        if(u){var a=el('a','lka','열기 ↗');a.href=u;a.target='_blank';a.rel='noopener noreferrer';a.title=u;td.appendChild(a)}
+        else{td.appendChild(el('span','lkt0','미등록'));
+          if(base&&rowOf[k]){var e=el('a','lkb','입력 ↗');e.href=base+'&range=F'+rowOf[k];e.target='_blank';e.rel='noopener noreferrer';td.appendChild(e)}}
+      }
+      cells.forEach(render);
+      if(!LINK_SHEET.id){say('시트 연결 전: 링크 시트를 만든 뒤 LINK_SHEET에 주소를 넣으세요');return}
+      say('링크를 불러오는 중…');
+      fetch('https://docs.google.com/spreadsheets/d/'+encodeURIComponent(LINK_SHEET.id)+'/gviz/tq?tqx=out:csv&gid='+encodeURIComponent(LINK_SHEET.gid||'0'),{cache:'no-store'})
+        .then(function(r){if(!r.ok)throw new Error(r.status);return r.text()})
+        .then(function(t){
+          var rows=parseCSV(t);if(!rows.length)throw new Error('empty');
+          var h=rows[0].map(function(x){return x.trim()}),ki=h.indexOf('key'),li=h.indexOf('링크');if(ki<0)ki=0;if(li<0)li=5;
+          var n=0;rows.slice(1).forEach(function(r,i){var k=(r[ki]||'').trim();if(!k)return;rowOf[k]=i+2;var u=(r[li]||'').trim();if(u&&ok(u)){links[k]=u;n++}});
+          cells.forEach(render);say('링크 '+n+'개 불러옴');
+        })
+        .catch(function(){say('시트를 불러오지 못했습니다. 공유 설정(링크가 있는 모든 사용자: 뷰어)과 시트 주소를 확인하세요')});
+    })();
+    // 부서 탭
+    var tabs=Array.prototype.slice.call(document.querySelectorAll('.tab'));
+    function pick(t){tabs.forEach(function(x){var on=x===t;x.setAttribute('aria-selected',on?'true':'false');x.tabIndex=on?0:-1;var pn=document.getElementById(x.getAttribute('aria-controls'));if(pn){pn.hidden=!on}})}
+    tabs.forEach(function(t,i){t.addEventListener('click',function(){pick(t)});t.addEventListener('keydown',function(e){var n=null;if(e.key==='ArrowRight'){n=tabs[(i+1)%tabs.length]}else if(e.key==='ArrowLeft'){n=tabs[(i+tabs.length-1)%tabs.length]}if(n){n.focus();pick(n)}})});
+    // 상단 메뉴 현재 위치 표시
+    var links=Array.prototype.slice.call(document.querySelectorAll('.navlinks a,.toc nav a'));
+    var map={};var maps={};links.forEach(function(a){(maps[a.dataset.s]=maps[a.dataset.s]||[]).push(a)});
+    if('IntersectionObserver' in window){
+      var io=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){var ls=maps[en.target.id];if(ls){links.forEach(function(a){a.classList.remove('on')});ls.forEach(function(a){a.classList.add('on')});var t=document.querySelector('.toc nav a.on');if(t&&t.scrollIntoView&&document.querySelector('.toc').offsetParent){var bx=document.querySelector('.toc'),r=t.getBoundingClientRect(),br=bx.getBoundingClientRect();if(r.top<br.top+40||r.bottom>br.bottom-40){bx.scrollTop+=r.top-br.top-120}}}}})},{rootMargin:'-30% 0px -60% 0px'});
+      Object.keys(maps).forEach(function(id){var el=document.getElementById(id);if(el){io.observe(el)}});
+    }
+  }catch(err){}
+})();
+</script>
+
+</body>
+</html>
