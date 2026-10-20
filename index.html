@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
-/* Layout: 세로로 읽는 5장 의사결정 흐름 + 접히는 상세 Playbook. 색은 부서(Growth 파랑 / Ops 주황 / Fleet 초록)에만 쓰고 나머지는 차분한 중성색. */
+/* Layout: 세로로 읽는 6장 의사결정 흐름 + 접히는 상세 Playbook. 색은 부서(Growth 파랑 / Ops 주황 / Fleet 초록)에만 쓰고 나머지는 차분한 중성색. */
 :root{
   --bg:#F3F5F8; --surface:#FFFFFF; --surface-2:#F8F9FB; --fg:#12171F; --muted:#586172; --line:#D9DEE6; --ink:#1B2230; --ink-soft:#3A4455;
   --growth:#2F5FD0; --growth-tint:#E7EDFB; --growth-text:#2350B8;
@@ -119,6 +119,18 @@ p,li,td,dd{text-wrap:pretty}
 .qb{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:var(--mono);font-weight:600;font-size:15px;color:var(--on-team);grid-row:span 2}
 .qb.growth{background:var(--growth)}.qb.ops{background:var(--ops)}.qb.fleet{background:var(--fleet)}
 .qb.gf{background:linear-gradient(90deg,var(--growth) 50%,var(--fleet) 50%)}
+.qb.of{background:linear-gradient(90deg,var(--ops) 50%,var(--fleet) 50%)}
+.stage{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.04em;align-self:center;margin-left:2px}
+.fstage{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}
+@media (max-width:900px){.fstage{grid-template-columns:1fr}}
+.fs{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--surface);display:grid;gap:8px;align-content:start}
+.fs .top{display:flex;align-items:center;gap:8px}
+.fs .top b{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.fs h3{font-size:16px;font-weight:800}
+.fs .who{font-size:12.5px;color:var(--muted)}
+.fs h4{font-size:12px;font-weight:700;color:var(--muted);margin-top:4px}
+.fs ul{margin-left:18px;list-style:disc;font-size:13.5px;display:grid;gap:3px}
+
 .qcard h3{font-size:17px;font-weight:800;align-self:center}
 .qcard .owners{grid-column:2;display:flex;flex-wrap:wrap;gap:6px}
 .chk{grid-column:1/-1;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
@@ -462,8 +474,9 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
       <a href="#p1" data-s="p1">1 목적</a>
       <a href="#p2" data-s="p2">2 판단 순서</a>
       <a href="#p3" data-s="p3">3 역할</a>
-      <a href="#p4" data-s="p4">4 재배치</a>
-      <a href="#p5" data-s="p5">5 사례</a>
+      <a href="#pg" data-s="pg">4 퍼널 개선</a>
+      <a href="#p4" data-s="p4">5 재배치</a>
+      <a href="#p5" data-s="p5">6 사례</a>
       <a href="#dept" data-s="dept">부서별 기준</a>
       <a href="#details" data-s="details">상세 Playbook</a>
     </nav>
@@ -477,17 +490,18 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
 <a href="#p1" data-s="p1">1 목적</a>
 <a href="#p2" data-s="p2">2 판단 순서</a>
 <a class="sub" href="#q1" data-s="q1"><b>Q1</b> 정상 판매 가능</a>
-<a class="sub" href="#q2" data-s="q2"><b>Q2</b> 차고지 수요</a>
-<a class="sub" href="#q3" data-s="q3"><b>Q3</b> 노출·선택</a>
-<a class="sub" href="#q4" data-s="q4"><b>Q4</b> 전환</a>
-<a class="sub" href="#q5" data-s="q5"><b>Q5</b> 가격 조건</a>
+<a class="sub" href="#q2" data-s="q2"><b>Q2</b> 차고지 수요 (스팟클릭)</a>
+<a class="sub" href="#q3" data-s="q3"><b>Q3</b> 노출·선택 (차량클릭)</a>
+<a class="sub" href="#q4" data-s="q4"><b>Q4</b> 전환 (예약결제)</a>
+<a class="sub" href="#q5" data-s="q5"><b>Q5</b> BEP 회복</a>
 <a class="sub" href="#q6" data-s="q6"><b>Q6</b> 재배치</a>
 <a href="#p3" data-s="p3">3 누가 무엇을 판단하는가</a>
-<a href="#p4" data-s="p4">4 재배치 3 Gates</a>
-<a href="#p5" data-s="p5">5 사례</a>
+<a href="#pg" data-s="pg">4 Growth 퍼널 개선</a>
+<a href="#p4" data-s="p4">5 재배치 3 Gates</a>
+<a href="#p5" data-s="p5">6 사례</a>
 <a href="#qa12" data-s="qa12">12가지 질문 찾아보기</a>
 <div class="toc-g">부서별 기준</div>
-<a href="#basis" data-s="basis">공통 기준: 피플카 수익</a>
+<a href="#basis" data-s="basis">공통 기준: 수익 · 가동시간</a>
 <a href="#dept" data-s="dept">부서별 해야 할 일·데이터</a>
 <div class="toc-g">PART 2 · Detailed Playbook</div>
 <a href="#details" data-s="details">상세 기준 전체</a>
@@ -512,7 +526,7 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
 
 <!-- ============ PAGE 1 ============ -->
 <section class="page" id="p1">
-  <div class="page-eyebrow"><b>1 / 5</b><span>왜 하는가</span></div>
+  <div class="page-eyebrow"><b>1 / 6</b><span>왜 하는가</span></div>
   <h2>BEP 미달 차량을 어떻게 정상화할 것인가?</h2>
   <p class="page-lead"><span class="ph">차량별 BEP 미달을 조기에 탐지하고,</span> <span class="ph">원인을 차량 상태·수요·노출/선택·전환·차고지 관점에서</span> <span class="ph">순차적으로 진단한 뒤,</span> <span class="ph">가장 낮은 비용의 개선 Action부터 실행하여</span> <span class="ph">차량 단위 수익성을 정상화한다.</span></p>
   <p class="thesis">단, 개별 차량의 매출 증가가 아니라 <em>“회사 전체 차량의 순증 수익”</em>⁠을 최종 판단 기준으로 한다.</p>
@@ -522,7 +536,8 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
     <li>원인 확인⁠<small>차량 · 수요 · 노출 · 전환</small></li>
     <li>가장 낮은 비용의 개선</li>
     <li>효과 검증⁠<small>BEP 회복 여부</small></li>
-    <li>실패 시 재배치</li>
+    <li>실패 시 두 번째 원인⁠<small>재배치 전에 먼저</small></li>
+    <li>그래도 안 되면 재배치</li>
     <li class="end">그래도 안 되면 Exit</li>
   </ol>
   <div class="axis"><span>비용·부담 낮음</span><span>비용·부담 높음</span></div>
@@ -531,20 +546,20 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
     <article class="principle">
       <div class="n">①</div>
       <h3>원인을 먼저 찾는다</h3>
-      <p>매출이 <span class="pz"><span class="ph">낮다는 결과만 보고</span> <span class="ph">할인부터 하지 않는다.</span> <span class="ph">차량 상태, 차고지 수요,</span> <span class="ph">노출, 전환 순서로 확인한다.</span></span></p>
+      <p>매출이 <span class="pz"><span class="ph">낮다는 결과만 보고</span> <span class="ph">할인부터 하지 않는다.</span> <span class="ph">원인을 하나로 단정하지 않고</span> <span class="ph">여러 후보를 낸 뒤</span> <span class="ph">차량 상태, 차고지 수요,</span> <span class="ph">노출, 전환 순서로 확인한다.</span></span></p>
       <p class="where">적용: 2장 Q1 ~ Q4</p>
     </article>
     <article class="principle">
       <div class="n">②</div>
       <h3>비용이 낮은 Action부터 실행한다</h3>
-      <p>차량 <span class="pz"><span class="ph">정상화, 노출·상품 개선,</span> <span class="ph">가격 테스트를 먼저 하고,</span> <span class="ph">재배치와 Exit는 그다음에 검토한다.</span></span></p>
+      <p>여러 <span class="pz"><span class="ph">원인 후보 중 비용이 낮은 것부터 해결한다.</span> <span class="ph">효과가 없으면 재배치·Exit 전에</span> <span class="ph">두 번째 의심 원인을 먼저 해결한다.</span></span></p>
       <p class="where">적용: 2장 Q4 → Q5 → Q6 순서</p>
     </article>
     <article class="principle">
       <div class="n">③</div>
       <h3>차량 매출이 아니라 Fleet 전체 순증 수익으로 판단한다</h3>
       <p>한 <span class="pz"><span class="ph">차량이 더 팔려도 주변 차량이 줄거나 비용이 늘면</span> <span class="ph">회사 이익은 늘지 않는다.</span></span></p>
-      <p class="where">적용: <span class="pz"><span class="ph">4장 Gate 3,</span> <span class="ph">상세 Playbook 08</span></span></p>
+      <p class="where">적용: <span class="pz"><span class="ph">5장 Gate 3,</span> <span class="ph">상세 Playbook 08</span></span></p>
     </article>
   </div>
 
@@ -553,7 +568,7 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
 
 <!-- ============ PAGE 2 ============ -->
 <section class="page" id="p2">
-  <div class="page-eyebrow"><b>2 / 5</b><span>어떤 순서로 판단하는가</span></div>
+  <div class="page-eyebrow"><b>2 / 6</b><span>어떤 순서로 판단하는가</span></div>
   <h2>BEP <span class="pz"><span class="ph">미달 차량이 생기면</span> <span class="ph">무엇부터 확인하는가?</span></span></h2>
   <p class="page-lead"><span class="ph">위에서 아래로 질문에 답하며 내려갑니다.</span><br><span class="ph">NO가 나오면 오른쪽에 적힌 부서가</span> <span class="ph">해당 Action을 맡습니다.</span><span class="only2"><br><span class="ph">넓은 화면에서는 왼쪽 열(Q1 ~ Q3)에서 시작해</span> <span class="ph">오른쪽 열(Q4 ~ Q6)로 이어집니다.</span></span></p>
   <div class="legend" aria-label="부서 색상 범례">
@@ -569,7 +584,7 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
       <div>
         <span class="lbl">START</span>
         <strong>BEP 미달 차량 발생</strong>
-        <p>관리 순서: BEP 달성률이 낮고 <b>추가 매출 가능액</b>⁠이 큰 차량부터. BEP를 달성한 차량도 헤비유저 의존이 높으면 <a href="#pb-06" style="font-weight:700">관찰 대상(상세 06)</a></p>
+        <p><b>BEP 기준을 먼저 계산</b>⁠합니다. 기준은 고정값이 아니라 측정 시점마다 다시 계산하고, Action 계획은 그다음에 세웁니다.<br>관리 순서: BEP 달성률이 낮고 <b>추가 매출 가능액</b>⁠이 큰 차량부터. BEP를 달성한 차량도 헤비유저 의존이 높으면 <a href="#pb-06" style="font-weight:700">관찰 대상(상세 06)</a></p>
       </div>
     </div>
     <div class="down" style="margin-top:0"><div class="dv"><i></i></div><div></div></div>
@@ -578,18 +593,21 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
     <div class="step" id="q1">
       <div class="row">
         <div class="qcard">
-          <span class="qb ops">Q1</span>
+          <span class="qb of">Q1</span>
           <h3>정상적으로 판매 가능한 차량인가?</h3>
-          <div class="owners"><span class="tag ops">Ops Optimization</span></div>
+          <div class="owners"><span class="tag ops">Ops Optimization</span><span class="tag fleet">Fleet Performance</span></div>
           <div class="chk"><div class="k">확인</div>
-            <div class="chips"><span class="chip">사고</span><span class="chip">정비</span><span class="chip">비가동</span><span class="chip">차량 상태</span><span class="chip">예약 충돌</span></div>
+            <div class="grp"><span class="gl">차량 문제 · Ops</span><span class="chip">사고</span><span class="chip">정비</span><span class="chip">세차</span><span class="chip">예약 충돌</span><span class="chip">상태 불량 취소</span><span class="chip">대차</span></div>
+            <div class="grp"><span class="gl">상품 판매 · Fleet</span><span class="chip">카카오T 등 다른 채널</span><span class="chip">배달렌트·월구독 등 다른 상품</span></div>
+            <div class="grp"><span class="gl">이동 · Fleet</span><span class="chip">탁송</span></div>
           </div>
+          <p class="qnote"><span class="pz"><span class="ph">투루카 기준으로는 다른 채널이나</span> <span class="ph">카셰어링·편도 외 상품으로 판매된 시간도 불가동입니다.</span></span><br><span class="pz"><span class="ph">불가동은 원인별로 나눠 부서가 확인합니다.</span> <span class="ph">차량 문제만 정상화 대상이고,</span> <span class="ph">상품 판매는 가동시간에서만 뺍니다.</span></span><br><span class="pz"><span class="ph">고객은 예약 때 차량 상태를 모르므로</span> <span class="ph">취소·대차 이력으로 찾습니다.</span></span> <span class="prop">원인별 기준점 정의 필요</span></p>
         </div>
         <div class="side">
           <span class="lab-side">NO</span>
           <div class="branch ops">
-            <div class="tags"><span class="tag ops">Ops Optimization</span></div>
-            <ol class="acts"><li>차량 정상화</li><li>정상화 후 재측정⁠<small>다시 START부터</small></li></ol>
+            <div class="tags"><span class="tag ops">Ops Optimization</span><span class="tag fleet">Fleet Performance</span></div>
+            <ol class="acts"><li>차량 문제 불가동 → 정상화⁠<small>사고·정비·세차 등은 Ops, 탁송은 Fleet</small></li><li>상품 판매 불가동 → 가동시간에서 제외⁠<small>문제 아님. Fleet이 판매 시간 확인, BEP 기준 재계산</small></li><li>정기 측정 주기에 재측정⁠<small>수시 재측정이 아니라 정기 주기에 맞춰 START부터</small></li></ol>
           </div>
         </div>
       </div>
@@ -602,26 +620,24 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
         <div class="qcard">
           <span class="qb gf">Q2</span>
           <h3>현재 차고지에 충분한 수요가 있는가?</h3>
-          <div class="owners"><span class="tag growth">Growth</span><span class="tag fleet">Fleet Performance</span></div>
+          <div class="owners"><span class="tag growth">Growth</span><span class="tag fleet">Fleet Performance</span><span class="stage">퍼널: 스팟클릭</span></div>
           <div class="chk"><div class="k">확인</div>
-            <div class="grp"><span class="gl">수요</span><span class="chip">지역 유입</span><span class="chip">차고지 조회</span><span class="chip">유사차종 수요</span></div>
+            <div class="grp"><span class="gl">수요</span><span class="chip">지역 유입</span><span class="chip">차고지 조회 (스팟클릭)</span><span class="chip">시간대별 차고지 조회</span></div>
             <div class="grp"><span class="gl">공급</span><span class="chip">차량 공급량</span><span class="chip unmet">예약 가능 차량 부족</span><span class="chip unmet">피크타임 공급 부족</span></div>
-            <div class="grp"><span class="gl">이용자</span><span class="chip">이용자 수</span><span class="chip">인당 이용빈도</span><span class="chip">헤비유저 이탈</span></div>
-            <div class="grp"><span class="gl">적합성</span><span class="chip">이 차고지의 선호 차종·유종과 일치</span></div>
           </div>
-          <p class="qnote">노란 <span class="pz"><span class="ph">칸은 미충족 수요 신호입니다.</span> <span class="ph">선호 차종·유종은 지역×차고지마다 다르므로 같은 차고지 특성끼리 비교합니다.</span></span></p>
+          <p class="qnote">이 <span class="pz"><span class="ph">단계는 차고지 유입까지만 봅니다.</span> <span class="ph">차고지 조회는 차종과 무관하게 위치 기반으로 일어나므로,</span> <span class="ph">유사차종 수요와 선호 차종 적합성은 Q3,</span> <span class="ph">이용자 구성은 Q4에서 봅니다.</span> <span class="ph">피크타임 공급 부족은 차고지 조회를 시간대별로 나눠 판단합니다.</span></span></p>
         </div>
         <div class="side">
           <span class="lab-side">NO</span>
           <div class="stack">
             <div class="branch growth">
-              <div class="when">헤비유저 한 명이 줄어든 경우</div>
+              <div class="when">차고지 클릭 자체가 낮은 경우</div>
               <div class="tags"><span class="tag growth">Growth</span></div>
-              <ol class="acts"><li>개인 단위 CRM⁠<small>이탈 원인 확인 후 재방문 유도</small></li></ol>
-              <a class="goto" href="#pb-06">이용자 진단 보기 →</a>
+              <ol class="acts"><li>스팟클릭 유도 마케팅⁠<small>차고지 노출·유입을 먼저 늘림</small></li></ol>
+              <a class="goto" href="#pg">퍼널 개선 보기 →</a>
             </div>
             <div class="branch fleet">
-              <div class="when">이용자 <span class="pz"><span class="ph">수와 이용빈도가 모두 낮거나,</span> <span class="ph">선호 차종·유종과 안 맞는 경우</span></span></div>
+              <div class="when">유도 <span class="pz"><span class="ph">후에도 차고지 수요가</span> <span class="ph">계속 낮은 경우</span></span></div>
               <div class="tags"><span class="tag growth">Growth</span><span class="tag fleet">Fleet Performance</span></div>
               <ol class="acts"><li>재배치 · 차종 교체 검토⁠<small>가격 할인보다 먼저 검토</small></li></ol>
               <a class="goto" href="#q6">Q6으로 이동 →</a>
@@ -638,16 +654,18 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
         <div class="qcard">
           <span class="qb growth">Q3</span>
           <h3>해당 차량이 정상적으로 노출·선택되고 있는가?</h3>
-          <div class="owners"><span class="tag growth">Growth</span></div>
+          <div class="owners"><span class="tag growth">Growth</span><span class="stage">퍼널: 차량클릭</span></div>
           <div class="chk"><div class="k">확인</div>
-            <div class="chips"><span class="chip">차량 노출</span><span class="chip">상세 진입</span><span class="chip">유사차종 대비 선택률 (같은 차고지 특성 기준)</span></div>
+            <div class="grp"><span class="gl">노출</span><span class="chip">차량 노출</span><span class="chip">차량조회 (상세 진입)</span><span class="chip">유사차종 대비 선택률</span></div>
+            <div class="grp"><span class="gl">적합성</span><span class="chip">유사차종 수요</span><span class="chip">이 차고지의 선호 차종·유종과 일치</span></div>
           </div>
+          <p class="qnote">차고지 <span class="pz"><span class="ph">클릭은 정상인데</span> <span class="ph">차량 클릭이 낮은 경우를 여기서 찾습니다.</span> <span class="ph">같은 차고지 특성끼리 비교합니다.</span></span></p>
         </div>
         <div class="side">
           <span class="lab-side">NO</span>
           <div class="branch growth">
             <div class="tags"><span class="tag growth">Growth</span></div>
-            <ol class="acts"><li>노출·상품 개선</li></ol>
+            <ol class="acts"><li>노출·차종 포트폴리오 재구성</li><li>노출가 조정⁠<small>앱에 보이는 요금</small></li></ol>
           </div>
         </div>
       </div>
@@ -664,34 +682,45 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
         <div class="qcard">
           <span class="qb growth">Q4</span>
           <h3>예약으로 정상 전환되고 있는가?</h3>
-          <div class="owners"><span class="tag growth">Growth</span></div>
+          <div class="owners"><span class="tag growth">Growth 100%</span><span class="stage">퍼널: 예약결제</span></div>
           <div class="chk"><div class="k">확인</div>
-            <div class="chips"><span class="chip">상세</span><span class="chip">→ 예약 시작</span><span class="chip">→ 결제</span><span class="chip">→ 예약 완료</span></div>
+            <div class="grp"><span class="gl">전환</span><span class="chip">상세</span><span class="chip">→ 예약 시작</span><span class="chip">→ 결제</span><span class="chip">→ 예약 완료</span></div>
+            <div class="grp"><span class="gl">이용자</span><span class="chip">이용자 수</span><span class="chip">인당 이용빈도</span><span class="chip">헤비유저 이탈</span></div>
           </div>
+          <p class="qnote">BEP <span class="pz"><span class="ph">미달 차량이면 Q4 전환은</span> <span class="ph">비정상으로 보고 항상 Action을 실행합니다.</span></span></p>
         </div>
         <div class="side">
-          <span class="lab-side">NO</span>
+          <span class="lab-side">ACTION</span>
+          <div class="stack">
           <div class="branch growth">
+            <div class="when">헤비유저 한 명이 줄어든 경우</div>
             <div class="tags"><span class="tag growth">Growth</span></div>
-            <ol class="acts"><li>비가격 원인 확인</li><li>필요 시 차량×시간대 가격 테스트⁠<small>아래 4가지가 모두 충족될 때만</small></li></ol>
+            <ol class="acts"><li>개인 단위 CRM⁠<small>이탈 원인 확인 후 재방문 유도</small></li></ol>
+            <a class="goto" href="#pb-06">이용자 진단 보기 →</a>
+          </div>
+          <div class="branch growth">
+            <div class="when">결제 단계에서 이탈하는 경우</div>
+            <div class="tags"><span class="tag growth">Growth</span></div>
+            <ol class="acts"><li>개인화 CRM · 쿠폰 보정⁠<small>노출가·원가가 아니라 실결제금액(쿠폰 할인)을 조정</small></li><li>필요 시 차량×시간대 쿠폰 할인 테스트⁠<small>아래 4가지가 모두 충족될 때만</small></li></ol>
             <div class="cond"><b>가격 테스트 조건</b>
               <ol><li>차량이 정상 판매 가능한 상태</li><li>차고지 자체 수요 부족이 아님</li><li>노출·상품 문제를 먼저 확인함</li><li>전환 단계에서 가격 저항 가능성이 확인됨</li></ol>
               <p style="margin-top:6px">성과 = 대상 차량 매출 증가 − 주변 유사차량 매출 감소 − 할인 비용</p>
             </div>
           </div>
+          </div>
         </div>
       </div>
-      <div class="down"><div class="dv yes"><span>YES · 또는 Action 후</span><i></i></div><div></div></div>
+      <div class="down"><div class="dv yes"><span>Action 후</span><i></i></div><div></div></div>
     </div>
 
     <!-- Q5 -->
     <div class="step" id="q5">
       <div class="row">
         <div class="qcard">
-          <span class="qb growth">Q5</span>
+          <span class="qb gf">Q5</span>
           <h3>개선 후 BEP가 회복되었는가?</h3>
-          <div class="owners"><span class="tag growth">Growth</span></div>
-          <p class="qnote" style="margin-top:6px">정상화·노출 <span class="pz"><span class="ph">개선·가격 테스트를 실행하고</span> <span class="ph">일정 기간이 지난 뒤</span> <span class="ph">다시 측정한 결과로 판단합니다.</span></span></p>
+          <div class="owners"><span class="tag growth">재측정: Growth</span><span class="tag fleet">재개입: Fleet Performance</span></div>
+          <p class="qnote" style="margin-top:6px">Action <span class="pz"><span class="ph">후 정기 측정 주기에 맞춰</span> <span class="ph">다시 측정한 결과로 판단합니다.</span> <span class="ph">이 단계부터 Fleet Performance가 다시 참여합니다.</span> <span class="ph">회복되지 않으면 재배치 전에</span> <span class="ph">두 번째 의심 원인을 먼저 해결합니다.</span></span></p>
         </div>
         <div class="side">
           <span class="lab-side yes">YES</span>
@@ -700,7 +729,7 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
           </div>
         </div>
       </div>
-      <div class="down"><div class="dv"><span>NO · 재배치 검토</span><i></i></div><div></div></div>
+      <div class="down"><div class="dv"><span>NO · 두 번째 원인 해결 후 재배치 검토</span><i></i></div><div></div></div>
     </div>
 
     <!-- Q6 -->
@@ -710,7 +739,7 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
           <span class="qb fleet">Q6</span>
           <h3>더 높은 순증 수익을 만들 수 있는 차고지가 있는가?</h3>
           <div class="owners"><span class="tag fleet">Fleet Performance</span><span class="tag growth">추가 수요 확인: Growth</span></div>
-          <p class="qnote" style="margin-top:6px">판단 <span class="pz"><span class="ph">기준과 계산은 4장에서</span> <span class="ph">설명합니다.</span></span></p>
+          <p class="qnote" style="margin-top:6px">판단 <span class="pz"><span class="ph">기준과 계산은 5장에서</span> <span class="ph">설명합니다.</span></span></p>
         </div>
         <div class="side">
           <span class="lab-side yes">YES</span>
@@ -733,12 +762,12 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
 </div>
   </div>
 
-  <div class="page-action"><span class="k">ACTION</span><span>어느 칸에서 멈추든 <b>요청 받는 부서와 다음 Action</b>⁠이 <span class="pz"><span class="ph">오른쪽 칸에 적혀 있습니다.</span> <span class="ph">재배치가 필요한 경우는 4장,</span> <span class="ph">담당 구분은 3장을</span></span> 봅니다.</span></div>
+  <div class="page-action"><span class="k">ACTION</span><span>어느 칸에서 멈추든 <b>요청 받는 부서와 다음 Action</b>⁠이 <span class="pz"><span class="ph">오른쪽 칸에 적혀 있습니다.</span> <span class="ph">재배치가 필요한 경우는 5장,</span> <span class="ph">담당 구분은 3장을</span></span> 봅니다.</span></div>
 </section>
 
 <!-- ============ PAGE 3 ============ -->
 <section class="page" id="p3">
-  <div class="page-eyebrow"><b>3 / 5</b><span>누가 판단하는가</span></div>
+  <div class="page-eyebrow"><b>3 / 6</b><span>누가 판단하는가</span></div>
   <h2>누가 무엇을 판단하는가?</h2>
   <p class="page-lead"><span class="ph">차량별 매출 성과의 책임은</span> <span class="ph">Growth 한 곳에 있습니다.</span><br><span class="ph">Ops와 Fleet은 각자의 영역에서</span> <span class="ph">판단 근거를 만들고 실행합니다.</span></p>
 
@@ -799,21 +828,82 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
     </div>
   </div>
 
-  <div class="page-action"><span class="k">ACTION</span><span>BEP 미달 차량 회의는 <b>Growth가 주관</b>⁠합니다. <span class="pz"><span class="ph">Ops와 Fleet은 자기 질문(Q1 / Q6)에 대한 답과 실행 결과를 가져옵니다.</span> <span class="ph">부서별로 해야 할 일과 필요한 데이터는</span></span> <a href="#dept" style="font-weight:700">부서별 기준</a>⁠에 있습니다.</span></div>
+  <div class="page-action"><span class="k">ACTION</span><span>BEP 미달 차량 회의는 <b>Growth가 주관</b>⁠합니다. <span class="pz"><span class="ph">Ops와 Fleet은 자기 질문(Ops: Q1, Fleet: Q1 · Q5 · Q6)에 대한 답과 실행 결과를 가져옵니다.</span> <span class="ph">부서별로 해야 할 일과 필요한 데이터는</span></span> <a href="#dept" style="font-weight:700">부서별 기준</a>⁠에 있습니다.</span></div>
+</section>
+
+<!-- ============ PAGE 4 (Growth funnel) ============ -->
+<section class="page" id="pg">
+  <div class="page-eyebrow"><b>4 / 6</b><span>무엇을 개선하는가</span></div>
+  <h2>Growth는 <span class="pz"><span class="ph">퍼널의 어느 단계를</span> <span class="ph">어떻게 고치는가?</span></span></h2>
+  <p class="page-lead"><span class="pz"><span class="ph">Q2~Q4는 고객이 차량을 고르는 순서와 같습니다.</span> <span class="ph">스팟클릭 → 차량클릭 → 예약결제 중</span> <span class="ph">멈춘 단계를 찾아 그 단계만 고칩니다.</span></span><br><span class="pz"><span class="ph">5장 재배치가 차고지 전략이라면,</span> <span class="ph">이 장은 Growth의 퍼널 전략입니다.</span></span></p>
+
+  <div class="fstage">
+    <article class="fs">
+      <div class="top"><span class="qb gf" style="width:34px;height:34px;font-size:13px">Q2</span><b>STEP 1</b></div>
+      <h3>스팟클릭</h3>
+      <p class="who">고객이 지도·목록에서 차고지를 누름 · Growth + Fleet</p>
+      <h4>보는 지표</h4>
+      <ul><li>지역 유입</li><li>차고지 조회 (시간대별)</li><li>피크타임 공급 부족</li></ul>
+      <h4>멈췄을 때</h4>
+      <ul><li>클릭 자체가 낮음 → 스팟클릭 유도 마케팅</li><li>유도 후에도 낮음 → 재배치·차종 교체 검토(Q6)</li></ul>
+    </article>
+    <article class="fs">
+      <div class="top"><span class="qb growth" style="width:34px;height:34px;font-size:13px">Q3</span><b>STEP 2</b></div>
+      <h3>차량클릭</h3>
+      <p class="who">차고지 안에서 차량을 누름 · Growth</p>
+      <h4>보는 지표</h4>
+      <ul><li>차량 노출, 차량조회</li><li>유사차종 대비 선택률</li><li>유사차종 수요, 선호 차종·유종 적합성</li></ul>
+      <h4>멈췄을 때</h4>
+      <ul><li>노출·차종 포트폴리오 재구성</li><li>노출가 조정 (앱에 보이는 요금)</li></ul>
+    </article>
+    <article class="fs">
+      <div class="top"><span class="qb growth" style="width:34px;height:34px;font-size:13px">Q4</span><b>STEP 3</b></div>
+      <h3>예약결제</h3>
+      <p class="who">예약하고 결제함 · Growth 100%</p>
+      <h4>보는 지표</h4>
+      <ul><li>상세 → 예약 시작 → 결제 → 완료</li><li>이용자 수, 인당 이용빈도</li><li>헤비유저 이탈</li></ul>
+      <h4>멈췄을 때</h4>
+      <ul><li>결제 이탈 → 개인화 CRM · 쿠폰 보정</li><li>헤비유저 이탈 → 개인 단위 CRM</li></ul>
+    </article>
+  </div>
+
+  <div class="principles" style="margin-top:22px">
+    <article class="principle">
+      <div class="n">①</div>
+      <h3>가격 수단은 단계마다 다르다</h3>
+      <p>노출가 <span class="pz"><span class="ph">조정은 차량을 고르는 Q3에서,</span> <span class="ph">실결제금액 조정(쿠폰 할인)은 결제하는 Q4에서 씁니다.</span> <span class="ph">Q4에서는 원가를 내리지 않습니다.</span></span></p>
+      <p class="where">적용: Q3 · Q4 · 상세 07</p>
+    </article>
+    <article class="principle">
+      <div class="n">②</div>
+      <h3>저매출 차량의 Q4는 항상 Action</h3>
+      <p>BEP <span class="pz"><span class="ph">미달 차량이면 전환이 정상으로 보여도</span> <span class="ph">Q4 Action을 실행한 뒤</span> <span class="ph">Q5에서 재측정합니다.</span></span></p>
+      <p class="where">적용: Q4 → Q5</p>
+    </article>
+    <article class="principle">
+      <div class="n">③</div>
+      <h3>단계별 추적 데이터가 먼저다</h3>
+      <p>스팟클릭 <span class="pz"><span class="ph">→ 차량클릭 → 예약결제를</span> <span class="ph">차고지·차량 단위로 이어 볼 수 있어야</span> <span class="ph">단계별 Action을 보정할 수 있습니다.</span></span></p>
+      <p class="where">현재: 퍼널은 전사 합계만 확보</p>
+    </article>
+  </div>
+
+  <div class="page-action"><span class="k">NEXT</span><span>Q5에서 <span class="pz"><span class="ph">회복되지 않으면 두 번째 의심 원인을 먼저 해결하고,</span> <span class="ph">그래도 안 되면</span></span> <b>5장 재배치</b>⁠로 넘어갑니다.</span></div>
 </section>
 
 <!-- ============ PAGE 4 ============ -->
 <section class="page" id="p4">
-  <div class="page-eyebrow"><b>4 / 5</b><span>어디로 옮기는가</span></div>
+  <div class="page-eyebrow"><b>5 / 6</b><span>어디로 옮기는가</span></div>
   <h2>어느 차고지로 옮길 것인가?</h2>
   <p class="page-lead"><span class="ph">후보 차고지는 세 개의 관문을</span> <span class="ph">순서대로 통과해야 합니다.</span><br><span class="ph">앞 관문에서 떨어지면</span> <span class="ph">뒤 계산은 하지 않습니다.</span></p>
 
   <div class="gates">
     <article class="gate">
       <span class="g">GATE 1</span>
-      <h3>차량을 추가할 수 있는가?</h3>
+      <h3>차량을 투입할 수 있는가?</h3>
       <span class="en">CAN WE ADD?</span>
       <div class="tags"><span class="tag fleet">Fleet Performance 확인</span></div>
+      <p class="desc">기존 차고지 증차와 신규 차고지 투입을 모두 포함합니다.</p>
       <ul><li>주차면 확보 가능</li><li>계약상 증차 가능</li><li>운영 가능</li><li>차종 제한 없음</li></ul>
       <div class="verdict">
         <div><span class="yn no">NO</span><span>후보 제외</span></div>
@@ -823,10 +913,10 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
 
     <article class="gate">
       <span class="g">GATE 2</span>
-      <h3>차량을 추가하면 더 팔 수 있는가?</h3>
+      <h3>차량을 넣으면 차고지 전체 매출이 늘어나는가?</h3>
       <span class="en">CAN WE SELL MORE?</span>
       <div class="tags"><span class="tag growth">Growth</span><span class="tag fleet">Fleet</span></div>
-      <p class="desc">현재 매출이 높은지가 아니라 <b>공급 부족으로 놓치고 있는 추가 수요</b>⁠가 있는지를 봅니다.</p>
+      <p class="desc">차고지 <span class="pz"><span class="ph">전체 총매출의 증가분이</span> <span class="ph">옮겨 오는 저매출 차량의 매출보다 커야 합니다.</span> <span class="ph">대당매출을 나눠 먹기만 하는 것은 아닌지,</span></span> <b>공급 부족으로 놓치고 있는 추가 수요</b>⁠가 있는지를 봅니다.</p>
       <div class="chips">
         <span class="chip">높은 가동률</span><span class="chip unmet">피크타임 차량 부족</span><span class="chip unmet">예약 가능 차량 없음</span><span class="chip unmet">원하는 차종 부재</span><span class="chip unmet">예약 실패</span><span class="chip unmet">인근 차고지 재검색</span><span class="chip">유사차종 높은 성과</span><span class="chip">지속적인 수요 증가</span><span class="chip">선호 차종·유종과 일치</span>
       </div>
@@ -878,7 +968,7 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
 
 <!-- ============ PAGE 5 ============ -->
 <section class="page" id="p5">
-  <div class="page-eyebrow"><b>5 / 5</b><span>한 대의 의사결정</span></div>
+  <div class="page-eyebrow"><b>6 / 6</b><span>한 대의 의사결정</span></div>
   <h2>한 대의 차량은 처음부터 끝까지 어떻게 결정되는가?</h2>
   <p class="page-lead"><span class="ill">Illustrative Example</span> 실제 데이터가 아닌 설명용 예시입니다.</p>
 
@@ -899,7 +989,7 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
       <div class="no">②</div>
       <h4>현재 차고지 수요 <span class="tag growth">Q2 · Growth</span></h4>
       <div class="res go">차고지 수요 문제 가능성⁠<small>가격 할인보다 재배치 검토를 우선한다</small></div>
-      <ul class="facts"><li>차고지 조회·예약 수요가 지역 평균 대비 낮음</li><li>이용자 수와 인당 이용빈도가 모두 낮음 (헤비유저 이탈은 아님)</li><li>이 차고지는 대형 승합 선호가 낮은 편</li></ul>
+      <ul class="facts"><li>차고지 조회(스팟클릭)가 지역 평균 대비 낮음, 시간대별로 봐도 같음</li><li>스팟클릭 유도 마케팅 후에도 회복되지 않음</li><li>피크타임 공급 부족 신호 없음</li></ul>
     </article>
 
     <article class="cs">
@@ -955,8 +1045,8 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
     <li><span>언제 가격 할인을 하는가</span><a href="#q4">Q4 조건 4가지</a></li>
     <li><span>할인으로 주변 차량 매출이 줄어든 것은 어떻게 확인하는가</span><a href="#pb-08">Playbook 08</a></li>
     <li><span>언제 재배치를 검토하는가</span><a href="#q5">Q2 NO · Q5 NO</a></li>
-    <li><span>재배치 후보 차고지는 어떤 기준으로 선정하는가</span><a href="#p4">4장 Gate 1~2</a></li>
-    <li><span>주차비까지 고려했을 때 이익인지 어떻게 판단하는가</span><a href="#p4">4장 Gate 3</a></li>
+    <li><span>재배치 후보 차고지는 어떤 기준으로 선정하는가</span><a href="#p4">5장 Gate 1~2</a></li>
+    <li><span>주차비까지 고려했을 때 이익인지 어떻게 판단하는가</span><a href="#p4">5장 Gate 3</a></li>
     <li><span>누가 최종적으로 다음 Action을 관리하는가</span><a href="#p3">3장 Growth</a></li>
     <li><span>그래도 BEP를 달성하지 못하면 어떻게 하는가</span><a href="#pb-10">Q6 NO · Playbook 10</a></li>
   </ol>
@@ -966,7 +1056,7 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
 <div class="part-label" id="part2">PART 2 · Detailed Playbook</div>
 
 <div class="basis" id="basis">
-  <h3>공통 기준: 매출은 피플카 수익으로 봅니다</h3>
+  <h3>공통 기준 ①: 매출은 피플카 수익으로 봅니다</h3>
   <p><span class="pz"><span class="ph">제휴사마다 매출 수수료율이 달라서,</span> <span class="ph">같은 거래 매출이라도</span> <span class="ph">피플카에 남는 수익이 다릅니다.</span></span> <span class="pz"><span class="ph">그래서 이 Playbook의 매출 금액은</span> <span class="ph">모두 피플카 수익으로 환산해 계산합니다.</span></span></p>
   <div class="formula"><b>피플카 수익</b> = 거래 매출 × 해당 제휴사의 매출 수수료율
 (자산 차량은 거래 매출 그대로)</div>
@@ -976,6 +1066,16 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
     <li><span class="pz"><span class="ph">수수료율이 다른 차량 사이에서 수요가 옮겨 가면,</span> <span class="ph">거래 매출이 같아도 피플카 수익은 줄 수 있습니다</span></span></li>
     <li><span class="pz"><span class="ph">10 Exit·반납·채널 전환:</span> <span class="ph">제휴사별 수수료율과 계약 조건을 함께 비교</span></span></li>
   </ul>
+  <h3 style="margin-top:18px">공통 기준 ②: BEP는 차량별로, 가동시간만으로 계산합니다</h3>
+  <p><span class="pz"><span class="ph">한 차량은 투루카·카카오T 등 여러 수요채널에서</span> <span class="ph">카셰어링·편도(리턴프리)·배달렌트·월구독 등 여러 상품으로 팔립니다.</span> <span class="ph">투루카 기준으로는 다른 채널이나</span> <span class="ph">카셰어링·편도 외 상품으로 판매된 시간도 불가동입니다.</span></span></p>
+  <div class="formula"><b>불가동 원인 구분</b>  차량 문제(사고·정비·세차 등, Ops) / 상품 판매(다른 채널·상품, Fleet) / 이동(탁송, Fleet)
+<b>투루카 가동시간</b> = 전체 시간 − 불가동 시간(위 세 가지 합계)
+<b>차량별 BEP 기준</b> = 그 차량의 월 BEP × (투루카 가동시간 ÷ 전체 시간)
+<b>BEP 달성률</b> = 그 차량의 투루카 피플카 수익 ÷ 차량별 BEP 기준</div>
+  <ul>
+    <li><span class="pz"><span class="ph">BEP는 차종 평균이 아니라</span> <span class="ph">차량 한 대 단위로 산출합니다</span></span></li>
+    <li><span class="pz"><span class="ph">상품 판매 불가동은 차량 문제가 아니므로</span> <span class="ph">Q1 정상화 대상이 아니고 가동시간에서만 뺍니다</span></span></li>
+</ul>
 </div>
 
 
@@ -1004,9 +1104,9 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
           <tr><td>매주</td><td>BEP <span class="pz"><span class="ph">미달 차량을 찾고</span> <span class="ph">추가 매출 가능액이 큰 순서로 정렬</span></span></td><td>관리 대상 목록 (위험·주의 구분)</td><td>상세 01 · 02</td></tr>
           <tr><td>대상 차량마다</td><td>차종 <span class="pz"><span class="ph">→ 지역 → 차고지 → 차량 순으로,</span> <span class="ph">같은 차고지 특성끼리 비교해 문제 층을 정함</span></span></td><td>문제 층 한 줄 요약</td><td>상세 03</td></tr>
           <tr><td>Q1 단계</td><td>Ops에 <span class="pz"><span class="ph">차량 상태 확인 요청,</span> <span class="ph">회신 후 재측정 일정 확정</span></span></td><td>요청: <span class="pz"><span class="ph">차량번호, 의심 불가동 구간,</span> <span class="ph">현재 BEP 달성률</span></span></td><td>Q1 · 상세 04</td></tr>
-          <tr><td>Q2~Q4 단계</td><td>수요·이용자 <span class="pz"><span class="ph">구성·노출·전환을 진단하고</span> <span class="ph">CRM, 노출·상품 개선,</span> <span class="ph">가격 테스트를 실행</span></span></td><td>패턴(A~D)과 Action 기록</td><td>Q2~Q4 · 상세 05 · 06</td></tr>
+          <tr><td>Q2~Q4 단계</td><td>스팟클릭 <span class="pz"><span class="ph">→ 차량클릭 → 예약결제 단계별로 진단하고</span> <span class="ph">스팟클릭 유도 마케팅, 노출·포트폴리오·노출가 개선,</span> <span class="ph">개인화 CRM·쿠폰 보정을 실행</span></span></td><td>멈춘 단계와 Action 기록</td><td>Q2~Q4 · 4장 · 상세 05 · 06</td></tr>
           <tr><td>가격 테스트 시</td><td>4가지 <span class="pz"><span class="ph">조건 확인, 차량×시간대·대조군 설계,</span> <span class="ph">종료 후 순증 계산</span></span></td><td>Fleet 순증 &gt; 0 여부</td><td>상세 07 · 08</td></tr>
-          <tr><td>재배치가 필요할 때</td><td>추가 수요·미충족 수요·이용자 구성을 정리해 Fleet에 요청, 후보 제안</td><td>요청서: 대상, 근거, 시급성</td><td>4장 Gate 2</td></tr>
+          <tr><td>재배치가 필요할 때</td><td>추가 수요·미충족 수요·이용자 구성을 정리해 Fleet에 요청, 후보 제안</td><td>요청서: 대상, 근거, 시급성</td><td>5장 Gate 2</td></tr>
           <tr><td>Action 후 4~8주</td><td>BEP <span class="pz"><span class="ph">재측정, 다음 Action 결정,</span> <span class="ph">필요 시 Exit 안 작성</span></span></td><td>유지 / 재배치 / Exit 안</td><td>Q5 · 상세 10</td></tr>
           <tr><td>매주</td><td>BEP <span class="pz"><span class="ph">미달 차량 회의 주관,</span> <span class="ph">진행 상황 기록</span></span></td><td>차량별 현재 위치(Q 번호)와 담당</td><td>상세 11</td></tr>
         </tbody>
@@ -1019,12 +1119,13 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
         <tbody>
           <tr><td>차량별 BEP 기준과 달성률</td><td>Weekly Sales Dashboard 차량별 매출관리 탭</td><td class="st part">◐ <span class="pz"><span class="ph">일부 (월 단위 기본,</span> <span class="ph">주 단위는 담당자 확인)</span></span></td><td>01 · 02</td><td class="lk" data-k="g1"></td></tr>
           <tr><td>가용일당 차량매출, 유효대수</td><td>26년 월별 매출현황 대시보드</td><td class="st part">◐ <span class="pz"><span class="ph">월 단위 확보,</span> <span class="ph">차량 상세 표는 미완성</span></span></td><td>02 · 04</td><td class="lk" data-k="g2"></td></tr>
-          <tr><td>지역·차고지별 검색 → 조회 → 예약 퍼널</td><td>crm-dashboard.jsx</td><td class="st part">◐ <span class="pz"><span class="ph">전사 합계만 확보,</span> <span class="ph">지역·차고지 분해 필요</span></span></td><td>Q2 · 05</td><td class="lk" data-k="g3"></td></tr>
+          <tr><td>지역·차고지별 검색 → 조회 → 예약 퍼널</td><td>crm-dashboard.jsx</td><td class="st part">◐ <span class="pz"><span class="ph">전사 합계만 확보,</span> <span class="ph">지역·차고지 분해 필요</span></span></td><td>Q2~Q4 · 05</td><td class="lk" data-k="g3"></td></tr>
           <tr><td>예약 <span class="pz"><span class="ph">가능 차량 존재 여부,</span> <span class="ph">미충족 수요 신호</span></span></td><td>앱 검색 원본 로그</td><td class="st no">○ 미확보</td><td>Q2 · Gate 2</td><td class="lk" data-k="g4"></td></tr>
           <tr><td>이용자 <span class="pz"><span class="ph">수, 인당 이용빈도,</span> <span class="ph">헤비유저, 이탈</span></span></td><td>Weekly <span class="pz"><span class="ph">Sales Dashboard 회원분석 탭 (RFM,</span> <span class="ph">재이용 코호트)</span></span></td><td class="st part">◐ <span class="pz"><span class="ph">이용자 단위 확보,</span> <span class="ph">차량 단위 연결은 확인 필요</span></span></td><td>06</td><td class="lk" data-k="g5"></td></tr>
           <tr><td>차고지 <span class="pz"><span class="ph">프로필 (선호 차종·유종,</span> <span class="ph">이용 시간대)</span></span></td><td>예약 데이터를 차고지별로 집계</td><td class="st no">○ 신규 구성 필요</td><td>03 · Gate 2</td><td class="lk" data-k="g6"></td></tr>
           <tr><td>경쟁사 요금, 시장수요</td><td>Weekly <span class="pz"><span class="ph">Sales Dashboard 경쟁사요금비교 탭,</span> <span class="ph">외부 1~3군 지표</span></span></td><td class="st part">◐ 요금 확보, 외부 지표는 조건부</td><td>Q4 · 03</td><td class="lk" data-k="g7"></td></tr>
           <tr><td>주변 유사차량 매출, 대조군</td><td>그로스팀 내부 데이터</td><td class="st no">○ 신규 확보 필요</td><td>08</td><td class="lk" data-k="g8"></td></tr>
+          <tr><td>차량별 <span class="pz"><span class="ph">채널·상품별 판매 시간과 매출</span> <span class="ph">(카카오T, 배달렌트, 월구독 등)</span></span></td><td>채널·상품별 예약 데이터</td><td class="st no">○ 확인 필요</td><td>Q1 · 01 · 02</td><td class="lk" data-k="g9"></td></tr>
         </tbody>
       </table></div>
     </div>
@@ -1038,7 +1139,7 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
       <div class="tscroll"><table>
         <thead><tr><th>언제</th><th>할 일</th><th>결과물 · 기준</th><th>연결</th></tr></thead>
         <tbody>
-          <tr><td>Growth 요청 접수 시</td><td>대상 <span class="pz"><span class="ph">차량의 불가동 사유를 확인하고</span> <span class="ph">판매 가능 여부를 판정</span></span></td><td>판정(가능 / 불가), 사유, 해당 구간</td><td>Q1 · 상세 04</td></tr>
+          <tr><td>Growth 요청 접수 시</td><td>대상 <span class="pz"><span class="ph">차량의 불가동 중 차량 문제(사고·정비·세차 등) 사유를 확인하고</span> <span class="ph">판매 가능 여부를 판정</span></span></td><td>판정(가능 / 불가), 사유, 해당 구간</td><td>Q1 · 상세 04</td></tr>
           <tr><td>판정이 불가일 때</td><td>정상화를 실행하고 완료일을 회신</td><td>완료일 회신 후 Growth가 재측정 시작</td><td>Q1 NO</td></tr>
           <tr><td>회신 기한</td><td>요청 접수 후 정해진 기한 안에 회신 <span class="prop">제안 · 기한 합의 필요</span></td><td>기한 미정 상태</td><td>상세 11</td></tr>
           <tr><td>관리자예약 입력 시</td><td>불가동 <span class="pz"><span class="ph">상세구분을 빠짐없이 입력 (비어 있으면</span> <span class="ph">대시보드에서 “미분류”로 잡힘)</span></span></td><td>상세구분 공백 없음</td><td>상세 04</td></tr>
@@ -1069,9 +1170,11 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
       <div class="tscroll"><table>
         <thead><tr><th>언제</th><th>할 일</th><th>결과물 · 기준</th><th>연결</th></tr></thead>
         <tbody>
+          <tr><td>Q1 단계</td><td>불가동 <span class="pz"><span class="ph">중 상품 판매(카카오T, 배달렌트, 월구독 등)와</span> <span class="ph">탁송 시간을 구분해 회신,</span> <span class="ph">탁송 불가동은 정상화</span></span></td><td>채널·상품별 판매 시간, 탁송 완료일 회신</td><td>Q1 · 공통 기준</td></tr>
+          <tr><td>Action 후 재측정 시</td><td>Q5 <span class="pz"><span class="ph">판단에 다시 참여해</span> <span class="ph">차고지·공급 관점 의견 회신</span></span></td><td>재배치 필요 여부 의견</td><td>Q5</td></tr>
           <tr><td>Growth 요청 접수 시</td><td>요청서의 <span class="pz"><span class="ph">필수 항목(대상 세그먼트,</span> <span class="ph">근거, 시급성)을 확인하고</span> <span class="ph">담당 파트로 연결</span></span></td><td>접수 확인, 반려 사유(있다면)</td><td>3장</td></tr>
-          <tr><td>후보 차고지마다</td><td>Gate <span class="pz"><span class="ph">1: 주차면, 계약,</span> <span class="ph">운영 가능 여부,</span> <span class="ph">차종 제한 확인</span></span></td><td>후보별 가능 / 불가</td><td>4장 Gate 1</td></tr>
-          <tr><td>Gate 2 통과 후보마다</td><td>Gate <span class="pz"><span class="ph">3 비용 입력: 추가 주차비,</span> <span class="ph">이동비(탁송비), 추가 운영비</span></span></td><td>후보별 비용표 (Growth가 순증 계산에 사용)</td><td>4장 Gate 3</td></tr>
+          <tr><td>후보 차고지마다</td><td>Gate <span class="pz"><span class="ph">1: 주차면, 계약,</span> <span class="ph">운영 가능 여부,</span> <span class="ph">차종 제한 확인</span></span></td><td>후보별 가능 / 불가</td><td>5장 Gate 1</td></tr>
+          <tr><td>Gate 2 통과 후보마다</td><td>Gate <span class="pz"><span class="ph">3 비용 입력: 추가 주차비,</span> <span class="ph">이동비(탁송비), 추가 운영비</span></span></td><td>후보별 비용표 (Growth가 순증 계산에 사용)</td><td>5장 Gate 3</td></tr>
           <tr><td>이동 유형 판단</td><td>같은 지역 스팟 이동(상시 가능)인지 지역 간 이동(렌터카 파트너 계약상 한시적)인지 구분</td><td>유형과 가능 기간</td><td>상세 09</td></tr>
           <tr><td>후보 선정 후</td><td>순증 <span class="pz"><span class="ph">기여이익이 가장 큰 후보로 재배치 실행,</span> <span class="ph">실행일자·이동 차량 수·소요 비용 회신</span></span></td><td>실행 결과 회신</td><td>Q6 · 상세 09</td></tr>
           <tr><td>Q6 NO일 때</td><td>차종 교체, 반납, Exit를 제휴 차량·자산 차량의 계약 조건에 맞춰 실행</td><td>옵션별 가능 여부와 비용</td><td>상세 10</td></tr>
@@ -1111,7 +1214,7 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
 <div class="p2-head" id="details">
   <div>
     <h2>각 단계의 상세 기준</h2>
-    <p><span class="ph">모든 항목은 신호 → 진단 → 결정 → 액션으로 끝납니다.</span><br><span class="ph">앞 5장의 Q1 ~ Q6과 Gate에서 쓰는</span> <span class="ph">숫자와 계산식이 여기에 있습니다.</span></p>
+    <p><span class="ph">모든 항목은 신호 → 진단 → 결정 → 액션으로 끝납니다.</span><br><span class="ph">앞 6장의 Q1 ~ Q6과 Gate에서 쓰는</span> <span class="ph">숫자와 계산식이 여기에 있습니다.</span></p>
   </div>
   <button class="btn" type="button" id="toggleAll">모두 펼치기</button>
 </div>
@@ -1128,7 +1231,9 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
     </div>
     <div class="formula">BEP 달성률 = 차량의 월 실적 ÷ 차량의 월 BEP 기준
 (실적을 매출로 볼지 기여이익으로 볼지는 원본 기준에 맞춰 확정)
-(제휴 차량의 실적은 거래 매출 × 제휴사별 수수료율 = 피플카 수익)</div>
+(제휴 차량의 실적은 거래 매출 × 제휴사별 수수료율 = 피플카 수익)
+(BEP 기준은 고정값이 아니라 측정 시점마다 다시 계산하고, Action 계획보다 먼저 계산)
+(BEP 기준은 차종이 아니라 차량별로, 투루카 가동시간만으로 산출: 공통 기준 ②)</div>
     <div class="tscroll"><table>
       <thead><tr><th>구간 <span class="prop">제안</span></th><th>의미</th><th>다음 행동</th></tr></thead>
       <tbody>
@@ -1152,7 +1257,7 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
       <div><h5>액션</h5><ul><li>상위 차량부터 Q1 진행</li></ul></div>
     </div>
     <div class="formula"><b>가용일당 차량매출</b> = 기간 매출 ÷ 판매 가능했던 일수
-(사고·정비 등 비가동일은 일수에서 제외)
+(차량 문제·상품 판매·탁송으로 인한 불가동 시간은 제외)
 
 <b>추가 매출 가능액</b> = (비교 기준의 가용일당 차량매출 − 이 차량의 가용일당 차량매출) × 판매 가능 일수
 (차량매출은 피플카 수익 기준. 거래 매출 차이가 같아도 수수료율이 높을수록 가능액이 큼)</div>
@@ -1179,7 +1284,7 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
         <tr><td>지역 전체가 낮음</td><td>지역 수요 또는 시장 문제 가능성</td><td>Q2 (시장수요 확인 포함)</td></tr>
         <tr><td>같은 차고지의 다른 차량은 정상인데 이 차량만 낮음</td><td>차량 상태 또는 노출 문제</td><td>Q1 → Q3</td></tr>
         <tr><td>차고지의 모든 차량이 낮음</td><td>차고지 수요 문제</td><td>Q2</td></tr>
-        <tr><td>같은 <span class="pz"><span class="ph">차고지에서 선호가 높은 차종·유종은 잘 나오는데</span> <span class="ph">이 차량만 낮음</span></span></td><td>차고지 선호와 차량이 안 맞음</td><td>Q2 → Q6</td></tr>
+        <tr><td>같은 <span class="pz"><span class="ph">차고지에서 선호가 높은 차종·유종은 잘 나오는데</span> <span class="ph">이 차량만 낮음</span></span></td><td>차고지 선호와 차량이 안 맞음</td><td>Q3 → Q6</td></tr>
       </tbody>
     </table></div>
     <div>
@@ -1187,7 +1292,7 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
       <p class="t">선호하는 <span class="pz"><span class="ph">차종과 유종은 지역과 차고지마다 다릅니다.</span> <span class="ph">같은 차종이라도 차고지 특성이 다르면</span> <span class="ph">평균과 비교하는 것이 맞지 않으므로,</span> <span class="ph">비교 기준은</span></span> <b>같은 지역·비슷한 차고지의 같은 차종·같은 유종</b>⁠으로 잡습니다.</p>
       <ul class="note" style="display:grid;gap:3px;margin-top:8px">
         <li>차고지별 <span class="pz"><span class="ph">이용 차종·유종 비중,</span> <span class="ph">차종·유종별 대당 매출을 차고지 프로필로 정리</span></span></li>
-        <li>차고지 선호와 이 차량의 차종·유종이 안 맞음: 가격이나 노출 개선보다 차종 교체 또는 선호가 맞는 차고지로 재배치(Q2 → Q6)</li>
+        <li>차고지 선호와 이 차량의 차종·유종이 안 맞음: 가격이나 노출 개선보다 차종 교체 또는 선호가 맞는 차고지로 재배치(Q3 → Q6)</li>
       </ul>
     </div>
     <p class="note">시장수요 <span class="pz"><span class="ph">하락이 확인되면</span> <span class="ph">개별 차량이 아니라 시장 문제로 분류합니다.</span> <span class="ph">기존 원인 분류의 “시장 이슈(Case E)”와 같은 개념입니다.</span></span></p>
@@ -1206,7 +1311,8 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
     </div>
     <p class="t">플릿팀 시트의 <b>가동률</b>⁠(운영 <span class="pz"><span class="ph">차량 중 실제 이용된 비율)이 낮다고</span> <span class="ph">수요가 부족한 것은 아닙니다.</span> <span class="ph">정비·세차로 못 판 날이 섞여 있을 수 있으므로,</span> <span class="ph">수요를 판단하기 전에 비가동일을 먼저 빼고 봅니다.</span></span></p>
     <div class="formula"><b>불가동률</b> <span class="pz"><span class="ph">= 관리자예약으로 고객 예약이 막힌 시간 ÷ (24시간 × 해당 월 일수 × 유효대수) × 100
-※ 100 − 가동률로 계산하지 않음.</span> <span class="ph">고객 예약이 없어 비어 있던 시간은 불가동에 포함하지 않음</span></span></div>
+※ 100 − 가동률로 계산하지 않음.</span> <span class="ph">고객 예약이 없어 비어 있던 시간은 불가동에 포함하지 않음</span>
+<span class="ph">불가동은 차량 문제 / 상품 판매 / 탁송으로 나눠 집계</span></span></div>
     <p class="t">26년 <span class="pz"><span class="ph">월별 매출현황 대시보드의 「불가동률 분석」 탭이 이 정의로 이미 차량소속별·차량별 불가동률과 사유별(사고수리,</span> <span class="ph">정비, 세차/정비,</span> <span class="ph">단말기 점검, 자동차검사,</span> <span class="ph">리콜 등 상세구분) 내역을 보여줍니다.</span> <span class="ph">Q1의 사고·정비·비가동 확인은 이 탭에서</span> <span class="ph">해당 차량의 불가동 사유를 보는 것부터 시작할 수 있습니다.</span></span></p>
     <p class="note">대시보드 <span class="pz"><span class="ph">안내문 기준으로 차량별 월별 매출 상세 표는 아직 수정이 필요한 미완성 상태이므로,</span> <span class="ph">차량 단위 수치는 담당자 확인 후</span> <span class="ph">사용합니다. 정상화 후</span> <span class="ph">재측정 시점은 정비 완료 후</span> <span class="ph">2~4주를 제안합니다.</span></span> <span class="prop">제안</span> Ops 시스템의 사고·정비 데이터 연동 방식은 아직 정해지지 않았습니다.</p>
   </div>
@@ -1271,7 +1377,7 @@ td.lk{min-width:130px;font-size:12.5px;vertical-align:top}
       <thead><tr><th>이용자 패턴</th><th>의미</th><th>담당 · Action</th></tr></thead>
       <tbody>
         <tr><td><b>A.</b> <span class="pz"><span class="ph">이용자 수는 정상,</span> <span class="ph">헤비유저의 이용이 크게 줄었음</span></span></td><td>헤비유저 이탈. 차량이나 차고지 문제가 아닐 수 있음</td><td>Growth <span class="pz"><span class="ph">· 개인 단위 CRM,</span> <span class="ph">이탈 원인(이사·경쟁사·불만) 확인</span></span></td></tr>
-        <tr><td><b>B.</b> <span class="pz"><span class="ph">이용자 수도 적고</span> <span class="ph">인당 이용빈도도 낮음</span></span></td><td>이 차량에 대한 수요 기반 자체가 약함</td><td>Growth <span class="pz"><span class="ph">+ Fleet · 차고지 수요·차종·유종 적합성 점검(Q2),</span> <span class="ph">재배치(Q6)</span></span></td></tr>
+        <tr><td><b>B.</b> <span class="pz"><span class="ph">이용자 수도 적고</span> <span class="ph">인당 이용빈도도 낮음</span></span></td><td>이 차량에 대한 수요 기반 자체가 약함</td><td>Growth <span class="pz"><span class="ph">+ Fleet · 차종·유종 적합성 점검(Q3),</span> <span class="ph">재배치(Q6)</span></span></td></tr>
         <tr><td><b>C.</b> <span class="pz"><span class="ph">이용자 수는 많은데</span> <span class="ph">인당 이용빈도가 낮음 (한 번 쓰고 끝)</span></span></td><td>재방문 문제</td><td>Growth <span class="pz"><span class="ph">· 재방문 CRM,</span> <span class="ph">상품·이용 경험 점검</span></span></td></tr>
         <tr><td><b>D.</b> <span class="pz"><span class="ph">이용자 수는 적은데</span> <span class="ph">이용빈도가 매우 높음 (소수 단골)</span></span></td><td>매출은 좋아도 몇 명의 이탈에 매우 취약</td><td>Growth <span class="pz"><span class="ph">· 신규 이용자 확보,</span> <span class="ph">단골 이탈 방지,</span> <span class="ph">재배치 전 영향 확인</span></span></td></tr>
       </tbody>
